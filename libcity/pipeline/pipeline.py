@@ -27,6 +27,8 @@ def run_model(task=None, model_name=None, dataset_name=None, config_file=None,
         other_args(dict): the rest parameter args, which will be pass to the Config
     """
     # load config
+    # Parses the config file containing the user-defined parameters and uses them to modify the pipeline's parameter settings.
+    print(task, model_name, dataset_name, config_file, saved_model, train, other_args)
     config = ConfigParser(task, model_name, dataset_name,
                           config_file, saved_model, train, other_args)
     exp_id = config.get('exp_id', None)
@@ -43,13 +45,18 @@ def run_model(task=None, model_name=None, dataset_name=None, config_file=None,
     seed = config.get('seed', 0)
     set_random_seed(seed)
     # 加载数据集
+    # This uses the function in data.utils to fetch the dataset class that will be used to load the dataset.
     dataset = get_dataset(config)
-    # 转换数据，并划分数据集
+
+    # get_data function is defined in the parent of traffic_state_point_dataset.py
+    # This function returns the data in the form of a DataLoader, which includes training data, test data, and validation data.
     train_data, valid_data, test_data = dataset.get_data()
     data_feature = dataset.get_data_feature()
     # 加载执行器
     model_cache_file = './libcity/cache/{}/model_cache/{}_{}.m'.format(
         exp_id, model_name, dataset_name)
+
+    # Returns the model class using the config parameters.
     model = get_model(config, data_feature)
     executor = get_executor(config, model, data_feature)
     # 训练

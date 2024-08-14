@@ -8,6 +8,7 @@ import torch.nn.functional as F
 from libcity.model import loss
 from libcity.model.abstract_traffic_state_model import AbstractTrafficStateModel
 
+import pickle as pck
 
 def calculate_scaled_laplacian(adj):
     """
@@ -261,6 +262,10 @@ class STGCN(AbstractTrafficStateModel):
             else:  # 其他情况使用全部时间步的loss
                 y_true = batch['y']  # (batch_size, output_length, num_nodes, feature_dim)
                 y_predicted = self.predict(batch)  # (batch_size, output_length, num_nodes, output_dim)
+                x = batch['X']  # (batch_size, input_length, num_nodes, feature_dim)
+                results = {'x': x, 'y_true': y_true, 'y_predicted': y_predicted}
+                pck.dump(results, open('results.pkl', 'wb'))
+
         else:   # 'full'
             y_true = batch['y']  # (batch_size, output_length, num_nodes, feature_dim)
             y_predicted = self.predict(batch)  # (batch_size, output_length, num_nodes, output_dim)

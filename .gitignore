@@ -1,5 +1,5 @@
 raw_data/
-
+libcity/cache/dataset_cache/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

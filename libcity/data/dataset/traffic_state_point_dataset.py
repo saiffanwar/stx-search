@@ -3,6 +3,7 @@ import os
 from libcity.data.dataset import TrafficStateDataset
 
 
+# TrafficStateDataset is the parent class of TrafficStatePointDataset
 class TrafficStatePointDataset(TrafficStateDataset):
 
     def __init__(self, config):

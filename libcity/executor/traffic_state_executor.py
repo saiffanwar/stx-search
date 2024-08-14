@@ -10,6 +10,8 @@ from libcity.utils import get_evaluator, ensure_dir
 from libcity.model import loss
 from functools import partial
 
+from tqdm import tqdm
+import pickle as pck
 
 class TrafficStateExecutor(AbstractExecutor):
     def __init__(self, config, model, data_feature):
@@ -18,6 +20,7 @@ class TrafficStateExecutor(AbstractExecutor):
         self.data_feature = data_feature
         self.device = self.config.get('device', torch.device('cpu'))
         self.model = model.to(self.device)
+
         self.exp_id = self.config.get('exp_id', None)
 
         self.cache_dir = './libcity/cache/{}/model_cache'.format(self.exp_id)
@@ -77,7 +80,7 @@ class TrafficStateExecutor(AbstractExecutor):
 
     def save_model(self, cache_name):
         """
-        # save the current model to a file
+        将当前的模型保存到文件
 
         Args:
             cache_name(str): 保存的文件名
@@ -253,6 +256,9 @@ class TrafficStateExecutor(AbstractExecutor):
             # self.evaluator.clear()
             y_truths = []
             y_preds = []
+            with open(os.getcwd()+'test_data.pkl', 'wb') as f:
+                print(type(test_dataloader))
+                pck.dump(test_dataloader, f)
             for batch in test_dataloader:
                 batch.to_tensor(self.device)
                 output = self.model.predict(batch)
@@ -260,8 +266,10 @@ class TrafficStateExecutor(AbstractExecutor):
                 y_pred = self._scaler.inverse_transform(output[..., :self.output_dim])
                 y_truths.append(y_true.cpu().numpy())
                 y_preds.append(y_pred.cpu().numpy())
+
                 # evaluate_input = {'y_true': y_true, 'y_pred': y_pred}
                 # self.evaluator.collect(evaluate_input)
+
             # self.evaluator.save_result(self.evaluate_res_dir)
             y_preds = np.concatenate(y_preds, axis=0)
             y_truths = np.concatenate(y_truths, axis=0)  # concatenate on batch
@@ -302,7 +310,9 @@ class TrafficStateExecutor(AbstractExecutor):
 
             self._logger.info("evaluating now!")
             t2 = time.time()
+            print('starting validation......')
             val_loss = self._valid_epoch(eval_dataloader, epoch_idx, self.loss_func)
+            print('finished validation......')
             end_time = time.time()
             eval_time.append(end_time - t2)
 
@@ -363,7 +373,8 @@ class TrafficStateExecutor(AbstractExecutor):
         self.model.train()
         loss_func = loss_func if loss_func is not None else self.model.calculate_loss
         losses = []
-        for batch in train_dataloader:
+        for batch in tqdm(train_dataloader):
+            print('batch:', batch)
             self.optimizer.zero_grad()
             batch.to_tensor(self.device)
             loss = loss_func(batch)
@@ -378,7 +389,6 @@ class TrafficStateExecutor(AbstractExecutor):
     def _valid_epoch(self, eval_dataloader, epoch_idx, loss_func=None):
         """
         完成模型一个轮次的评估
-        complete one epoch of evaluation
 
         Args:
             eval_dataloader: 评估数据

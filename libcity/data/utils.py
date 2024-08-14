@@ -18,6 +18,7 @@ def get_dataset(config):
         AbstractDataset: the loaded dataset
     """
     try:
+        # Returns the relevant dataset class from the dataset_subclass module.
         return getattr(importlib.import_module('libcity.data.dataset'),
                        config['dataset_class'])(config)
     except AttributeError:

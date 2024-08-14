@@ -12,13 +12,14 @@ from libcity.utils import StandardScaler, NormalScaler, NoneScaler, \
 
 class TrafficStateDataset(AbstractDataset):
     """
-    交通状态预测数据集的基类。
-    默认使用`input_window`的数据预测`output_window`对应的数据，即一个X，一个y。
-    一般将外部数据融合到X中共同进行预测，因此数据为[X, y]。
-    默认使用`train_rate`和`eval_rate`在样本数量(num_samples)维度上直接切分训练集、测试集、验证集。
+    The base class for traffic state prediction datasets.
+    By default, use the data of `input_window` to predict the data corresponding to `output_window`, that is, an X and a y.
+    Generally, external data is merged into X for prediction together, so the data is [X, y].
+    By default, `train_rate` and `eval_rate` are used to directly split the training set, test set, and validation set in the dimension of the number of samples (num_samples).
     """
 
     def __init__(self, config):
+        # Takes all the configuration parameters of the dataset as input
         self.config = config
         self.dataset = self.config.get('dataset', '')
         self.batch_size = self.config.get('batch_size', 64)
@@ -87,7 +88,7 @@ class TrafficStateDataset(AbstractDataset):
 
     def _load_geo(self):
         """
-        加载.geo文件，格式[geo_id, type, coordinates, properties(若干列)]
+        Load the .geo file, format [geo_id, type, coordinates, properties (several columns)],
         """
         geofile = pd.read_csv(self.data_path + self.geo_file + '.geo')
         self.geo_ids = list(geofile['geo_id'])
@@ -119,20 +120,18 @@ class TrafficStateDataset(AbstractDataset):
 
     def _load_rel(self):
         """
-        加载.rel文件，格式[rel_id, type, origin_id, destination_id, properties(若干列)],
-        生成N*N的邻接矩阵，计算逻辑如下：
-        (1) 权重所对应的列名用全局参数`weight_col`来指定, \
-        (2) 若没有指定该参数, \
-            (2.1) rel只有4列，则认为rel中的每一行代表一条邻接边，权重为1。其余边权重为0，代表不邻接。 \
-            (2.2) rel只有5列，则默认最后一列为`weight_col` \
-            (2.3) 否则报错 \
-        (3) 根据得到的权重列`weight_col`计算邻接矩阵 \
-            (3.1) 参数`bidir_adj_mx`=True代表构造无向图，=False为有向图 \
-            (3.2) 参数`set_weight_link_or_dist`为`link`代表构造01矩阵，为`dist`代表构造权重矩阵（非01） \
-            (3.3) 参数`init_weight_inf_or_zero`为`zero`代表矩阵初始化为全0，`inf`代表矩阵初始化成全inf，初始化值也就是rel文件中不存在的边的权值 \
-            (3.4) 参数`calculate_weight_adj`=True表示对权重矩阵应用带阈值的高斯核函数进行稀疏化，对01矩阵不做处理，=False不进行稀疏化，
-            修改函数self._calculate_adjacency_matrix()可以构造其他方法替换全阈值高斯核的稀疏化方法 \
-
+        Load the .rel file, format [rel_id, type, origin_id, destination_id, properties (several columns)],
+        generate the N*N adjacency matrix, the calculation logic is as follows:
+        (1) The column name corresponding to the weight is specified by the global parameter `weight_col`,
+        (2) If this parameter is not specified,
+            (2.1) If the rel has only 4 columns, then each row in the rel is regarded as an adjacent edge, and the weight is 1.
+            (2.2) If the rel has only 5 columns, the last column is the `weight_col` by default.
+            (2.3) Otherwise, an error is reported.
+        (3) Calculate the adjacency matrix according to the obtained weight column `weight_col`,
+            (3.1) The parameter `bidir_adj_mx` = True means constructing an undirected graph, = False means a directed graph.
+            (3.2) The parameter `set_weight_link_or_dist` is `link` means constructing a 01 matrix, `dist` means constructing a weight matrix (non-01).
+            (3.3) The parameter `init_weight_inf_or_zero` is `zero` means that the matrix is initialized to all 0, `inf` means that the matrix is initialized to all inf, and the initialization value is the weight of the edge that does not exist in the rel file.
+            (3.4) The parameter `calculate_weight_adj` = True means that the weight matrix is sparsified by applying a Gaussian kernel function with a threshold, and no processing is performed on the 01 matrix. = False does not sparsify,
         Returns:
             np.ndarray: self.adj_mx, N*N的邻接矩阵
         """
@@ -203,9 +202,10 @@ class TrafficStateDataset(AbstractDataset):
 
     def _calculate_adjacency_matrix(self):
         """
-        使用带有阈值的高斯核计算邻接矩阵的权重，如果有其他的计算方法，可以覆盖这个函数,
-        公式为：$ w_{ij} = \exp \left(- \\frac{d_{ij}^{2}}{\sigma^{2}} \\right) $, $\sigma$ 是方差,
-        小于阈值`weight_adj_epsilon`的值设为0：$  w_{ij}[w_{ij}<\epsilon]=0 $
+        Calculate the weight of the adjacency matrix by the Gaussian kernel with a threshold,
+        if there are other calculation methods, you can override this function,
+        The formula is: $ w_{ij} = \exp \left(- \\frac{d_{ij}^{2}}{\sigma^{2}} \\right) $, $\sigma$ is the variance,
+        The value less than the threshold `weight_adj_epsilon` is set to 0: $  w_{ij}[w_{ij}<\epsilon]=0 $
 
         Returns:
             np.ndarray: self.adj_mx, N*N的邻接矩阵
@@ -225,6 +225,9 @@ class TrafficStateDataset(AbstractDataset):
         """
         加载数据文件(.dyna/.grid/.od/.gridod)，子类必须实现这个方法来指定如何加载数据文件，返回对应的多维数据,
         提供5个实现好的方法加载上述几类文件，并转换成不同形状的数组:
+        `_load_dyna_3d`/`_load_grid_3d`/`_load_grid_4d`/`_load_grid_od_4d`/`_load_grid_od_6d`
+
+        Load the data file (.dyna/.grid/.od/.gridod), the subclass must implement this method to specify how to load the data file, and return the corresponding multi-dimensional data. Provide 5 well-implemented methods to load the above several types of files, and convert them into arrays of different shapes:
         `_load_dyna_3d`/`_load_grid_3d`/`_load_grid_4d`/`_load_grid_od_4d`/`_load_grid_od_6d`
 
         Args:
@@ -784,6 +787,7 @@ class TrafficStateDataset(AbstractDataset):
         x_list, y_list = [], []
         for filename in data_files:
             df = self._load_dyna(filename)  # (len_time, ..., feature_dim)
+            # load_external == False for PEMS_BAY
             if self.load_external:
                 df = self._add_external_information(df, ext_data)
             x, y = self._generate_input_data(df)

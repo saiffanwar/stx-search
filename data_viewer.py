@@ -6,31 +6,20 @@ from numpy.random import f
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
-import ast
-import json
-
 
 mapbox_access_token = open(".mapboxtoken").read()
 
-#results = pck.load(open('results.pkl', 'rb'))
-#
-#for k, v in results.items():
-#    results[k] = v.cpu().numpy()
-#    print(k, results[k].shape)
+geofile = pd.read_csv('raw_data/METR_LA/METR_LA.geo')
+print(geofile.head())
+location_coordinates = geofile['coordinates'].to_numpy()
 
-geofile = pd.read_csv('raw_data/PEMS_BAY/PEMS_BAY.geo')
 
-longs = []
-lats = []
-for c in geofile['coordinates']:
-    vals = c[1:-1].split(',')
-    longs.append(float(vals[0]))
-    lats.append(float(vals[1]))
+#for batch in range(64):
 
 
 fig = go.Figure(go.Scattermapbox(
-        lat=lats,
-        lon=longs,
+        lat=['45.5017'],
+        lon=['-73.5673'],
         mode='markers',
         marker=go.scattermapbox.Marker(
             size=14
@@ -44,11 +33,11 @@ fig.update_layout(
         accesstoken=mapbox_access_token,
         bearing=0,
         center=go.layout.mapbox.Center(
-            lat=lats[0],
-            lon=longs[0]
+            lat=45,
+            lon=-73
         ),
         pitch=0,
-        zoom=10
+        zoom=5
     )
 )
 
