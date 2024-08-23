@@ -1,3 +1,6 @@
+from pprint import pprint
+
+
 import os
 import pandas as pd
 import numpy as np
@@ -136,6 +139,7 @@ class TrafficStateDataset(AbstractDataset):
             np.ndarray: self.adj_mx, N*N的邻接矩阵
         """
         relfile = pd.read_csv(self.data_path + self.rel_file + '.rel')
+#        print(relfile[relfile['origin_id']==773869].sort_values(by='cost')[:20])
         self._logger.info('set_weight_link_or_dist: {}'.format(self.set_weight_link_or_dist))
         self._logger.info('init_weight_inf_or_zero: {}'.format(self.init_weight_inf_or_zero))
         if self.weight_col != '':  # 根据weight_col确认权重列
@@ -174,6 +178,7 @@ class TrafficStateDataset(AbstractDataset):
                     self.adj_mx[self.geo_to_ind[row[1]], self.geo_to_ind[row[0]]] = 1
         self._logger.info("Loaded file " + self.rel_file + '.rel, shape=' + str(self.adj_mx.shape))
         # 计算权重
+#        pprint(self.adj_mx)
         if self.distance_inverse and self.set_weight_link_or_dist.lower() != 'link':
             self._distance_inverse()
         elif self.calculate_weight_adj and self.set_weight_link_or_dist.lower() != 'link':

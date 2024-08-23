@@ -273,10 +273,12 @@ class STGCN(AbstractTrafficStateModel):
         y_predicted = self._scaler.inverse_transform(y_predicted[..., :self.output_dim])
         return loss.masked_mse_torch(y_predicted, y_true)
 
-    def predict(self, batch):
+    def predict(self, batch=None, x=None, y=None):
         # 多步预测
-        x = batch['X']  # (batch_size, input_length, num_nodes, feature_dim)
-        y = batch['y']  # (batch_size, output_length, num_nodes, feature_dim)
+        if batch != None:
+            x = batch['X']  # (batch_size, input_length, num_nodes, feature_dim)
+            y = batch['y']  # (batch_size, output_length, num_nodes, feature_dim)
+
         y_preds = []
         x_ = x.clone()
         for i in range(self.output_window):

@@ -257,7 +257,6 @@ class TrafficStateExecutor(AbstractExecutor):
             y_truths = []
             y_preds = []
             with open(os.getcwd()+'test_data.pkl', 'wb') as f:
-                print(type(test_dataloader))
                 pck.dump(test_dataloader, f)
             for batch in test_dataloader:
                 batch.to_tensor(self.device)
