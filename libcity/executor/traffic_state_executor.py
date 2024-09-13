@@ -373,10 +373,12 @@ class TrafficStateExecutor(AbstractExecutor):
         loss_func = loss_func if loss_func is not None else self.model.calculate_loss
         losses = []
         for batch in tqdm(train_dataloader):
-            print('batch:', batch)
             self.optimizer.zero_grad()
             batch.to_tensor(self.device)
+            output = self.model.predict(batch)
+            print('output:', output)
             loss = loss_func(batch)
+            print(loss)
             self._logger.debug(loss.item())
             losses.append(loss.item())
             loss.backward()

@@ -948,6 +948,14 @@ class TrafficStateDataset(AbstractDataset):
                 x_train, y_train, x_val, y_val, x_test, y_test = self._load_cache_train_val_test()
             else:
                 x_train, y_train, x_val, y_val, x_test, y_test = self._generate_train_val_test()
+
+
+
+#        print(x_train.shape, y_train.shape, x_val.shape, y_val.shape, x_test.shape, y_test.shape)
+#        print(x_train[0])
+
+
+
         # 数据归一化
         self.feature_dim = x_train.shape[-1]
         self.ext_dim = self.feature_dim - self.output_dim

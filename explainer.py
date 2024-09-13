@@ -11,6 +11,8 @@ from libcity.data import get_dataset
 from libcity.utils import get_model
 from libcity.config import ConfigParser
 
+from graph_visualiser import graph_visualiser
+
 def ncr(n, r):
     f = math.factorial
     return f(n) // f(r) // f(n-r)
@@ -39,6 +41,7 @@ class Explainer():
         self.config = ConfigParser(self.task, self.model_name, self.dataset_name, self.config_file, self.saved_model, self.train, self.other_args)
         self.device = self.config.get('device', torch.device('cpu'))
         self.input_window = self.config.get('input_window', 3)
+        self.output_window = self.config.get('output_window', 1)
         self.target_index = 50
         self.target_timestamp = 0
 
@@ -92,7 +95,7 @@ class Explainer():
             temporal_neighbourhood_size: The size of the temporal neighbourhood. Default is 3.
 
         Returns:
-
+            candidate_events: A list of graphNode() objects that are part of the computation graph.
         '''
         # Take from 1st index because the 0th will always be itself. The adjacency matrix is symmetric.
         node_adjacency = adj_mx[target_node.node_index][1:]
@@ -111,25 +114,31 @@ class Explainer():
                 candidate_events.append(graphNode(n, t, x[0][t][n][0]))
         return candidate_events
 
-    def create_masked_input(self, subgraph_nodes, x):
+    def create_masked_input(self, subgraph_nodes, x, adj_mx):
+        masked_adj_mx = torch.zeros(np.array(adj_mx).shape)
         masked_input = torch.zeros(np.array(x).shape)
 
         for node in subgraph_nodes:
+            masked_adj_mx[node.node_index][node.node_index] = 1
             masked_input[0][node.timestamp][node.node_index] = torch.FloatTensor(x[0][node.timestamp][node.node_index])
 
-        return masked_input
+        return masked_input, masked_adj_mx
 
-    def calculate_fidelity(self, subgraph, batch, model):
+#    def calculate_fidelity(self, subgraph, batch, model):
 
-
+    def data_graph_visualisation(self, graph_data, adj_mx):
+        graph_visualiser(self, graph_data, adj_mx)
 
 
     def main(self):
 
         data_feature, train_data, valid_data, test_data = self.load_data()
+        self.scaler = data_feature['scaler']
+
         model_path = os.getcwd()+'/libcity/cache/1/model_cache/STGCN_METR_LA.m'
         model = self.load_model(model_path, data_feature)
         adj_mx = data_feature['adj_mx']
+        print(np.shape(data_feature))
 
 
         with torch.no_grad():
@@ -141,19 +150,22 @@ class Explainer():
             batch['y'] = batch['y'][:1]
             target_node = graphNode(self.target_index, self.target_timestamp, batch['y'][0][self.target_timestamp][self.target_index][0])
 
+#            self.data_graph_visualisation(batch['X'], adj_mx)
             self.candidate_events = self.fetch_computation_graph(batch['X'], adj_mx, target_node)
 
             fig, axes = plt.subplots(4,2, figsize=(10,10))
 
             subgraph_sizes = [5,10,25,50,100,int(np.floor(len(self.candidate_events)/4)),int(np.floor(len(self.candidate_events)/2)),len(self.candidate_events)]
+            subgraph_sizes = [50]
             all_errors = {s: [] for s in subgraph_sizes}
             for subgraph_size, ax in zip(subgraph_sizes, fig.get_axes()):
-                achieved_errors = []
-                for i in tqdm(range(100)):
+#                achieved_errors = []
+#                for i in tqdm(range(100)):
                     subgraph = random.sample(self.candidate_events, subgraph_size)
 #            subgraph = self.candidate_events
 
-                    masked_input = self.create_masked_input(subgraph, batch['X'])
+                    masked_input, masked_adj_mx = self.create_masked_input(subgraph, batch['X'], adj_mx)
+                    self.data_graph_visualisation(masked_input, masked_adj_mx)
 #                batch['X'] = masked_input
                     masked_batch = deepcopy(batch)
                     masked_batch['X'] = masked_input
@@ -161,16 +173,20 @@ class Explainer():
                     masked_batch.to_tensor(self.device)
                     loss = model.calculate_loss(masked_batch)
                     output = model.predict(masked_batch)
-                    error = self.calculate_target_error(target_node, masked_batch['y'], output)
-                    achieved_errors.append(error.item())
-                all_errors[subgraph_size] = achieved_errors
-#                len(self.candidate_events)\\4, (len(self.candidate_events)\\2), len(self.candidate_events)
-                ax.hist(achieved_errors, bins=[0.01*i for i in range(0, 100)])
+                    ### Inverse scaling of output to get traffic speed values.
+                    y_true = self.scaler.inverse_transform(output[..., :self.output_window])
+                    print(y_true.shape)
 
-                print('Mean error: ', np.mean(achieved_errors))
+                    error = self.calculate_target_error(target_node, masked_batch['y'], output)
+#                    achieved_errors.append(error.item())
+#                all_errors[subgraph_size] = achieved_errors
+##                len(self.candidate_events)\\4, (len(self.candidate_events)\\2), len(self.candidate_events)
+#                ax.hist(achieved_errors, bins=[0.01*i for i in range(0, 100)])
+#
+#                print('Mean error: ', np.mean(achieved_errors))
 #        ax.set_xlabel('Error')
-        fig.savefig('error_histograms.png')
-        plt.show()
+#        fig.savefig('error_histograms.png')
+#        plt.show()
 
 
 

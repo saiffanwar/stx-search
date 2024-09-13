@@ -52,6 +52,7 @@ def run_model(task=None, model_name=None, dataset_name=None, config_file=None,
     # This function returns the data in the form of a DataLoader, which includes training data, test data, and validation data.
     train_data, valid_data, test_data = dataset.get_data()
     data_feature = dataset.get_data_feature()
+
     # 加载执行器
     model_cache_file = './libcity/cache/{}/model_cache/{}_{}.m'.format(
         exp_id, model_name, dataset_name)
