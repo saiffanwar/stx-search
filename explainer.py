@@ -6,6 +6,8 @@ import random
 from tqdm import tqdm
 from copy import deepcopy
 from matplotlib import pyplot as plt
+from pprint import pprint
+import seaborn as sns
 
 from libcity.data import get_dataset
 from libcity.utils import get_model
@@ -117,17 +119,26 @@ class Explainer():
     def create_masked_input(self, subgraph_nodes, x, adj_mx):
         masked_adj_mx = torch.zeros(np.array(adj_mx).shape)
         masked_input = torch.zeros(np.array(x).shape)
+        all_zeros = torch.zeros(np.array(x).shape)
 
-        for node in subgraph_nodes:
-            masked_adj_mx[node.node_index][node.node_index] = 1
-            masked_input[0][node.timestamp][node.node_index] = torch.FloatTensor(x[0][node.timestamp][node.node_index])
+        min_value = dir(self.scaler)
 
+        subgraph_node_details = [[node.timestamp, node.node_index] for node in subgraph_nodes]
+        inverse_scaled_input = self.scaler.inverse_transform(x[0])
+        all_nodes = [[timestamp, index] for timestamp in range(self.input_window) for index in range(masked_input.shape[2])]
+        for node in all_nodes:
+            if node in subgraph_node_details:
+                masked_adj_mx[node[1]][node[1]] = 1
+                masked_input[0][node[0]][node[1]] = torch.FloatTensor(x[0][node[0]][node[1]])
+#            else:
+#                masked_input[0][node[0]][node[1]] = torch.FloatTensor([(-self.scaler.mean)/self.scaler.std])
+        masked_adj_mx = adj_mx
         return masked_input, masked_adj_mx
 
 #    def calculate_fidelity(self, subgraph, batch, model):
 
-    def data_graph_visualisation(self, graph_data, adj_mx):
-        graph_visualiser(self, graph_data, adj_mx)
+    def data_graph_visualisation(self, input_graph, masked_input, y_true, y_predicted, adj_mx):
+        graph_visualiser(self, input_graph, masked_input, y_true, y_predicted, adj_mx)
 
 
     def main(self):
@@ -138,7 +149,6 @@ class Explainer():
         model_path = os.getcwd()+'/libcity/cache/1/model_cache/STGCN_METR_LA.m'
         model = self.load_model(model_path, data_feature)
         adj_mx = data_feature['adj_mx']
-        print(np.shape(data_feature))
 
 
         with torch.no_grad():
@@ -148,36 +158,41 @@ class Explainer():
 #            print(dir(batch))
             batch['X'] = batch['X'][:1]
             batch['y'] = batch['y'][:1]
+
+
+
             target_node = graphNode(self.target_index, self.target_timestamp, batch['y'][0][self.target_timestamp][self.target_index][0])
 
 #            self.data_graph_visualisation(batch['X'], adj_mx)
             self.candidate_events = self.fetch_computation_graph(batch['X'], adj_mx, target_node)
 
-            fig, axes = plt.subplots(4,2, figsize=(10,10))
 
             subgraph_sizes = [5,10,25,50,100,int(np.floor(len(self.candidate_events)/4)),int(np.floor(len(self.candidate_events)/2)),len(self.candidate_events)]
-            subgraph_sizes = [50]
-            all_errors = {s: [] for s in subgraph_sizes}
-            for subgraph_size, ax in zip(subgraph_sizes, fig.get_axes()):
 #                achieved_errors = []
 #                for i in tqdm(range(100)):
-                    subgraph = random.sample(self.candidate_events, subgraph_size)
+            subgraph_size = 50
+            subgraph = random.sample(self.candidate_events, subgraph_size)
 #            subgraph = self.candidate_events
 
-                    masked_input, masked_adj_mx = self.create_masked_input(subgraph, batch['X'], adj_mx)
-                    self.data_graph_visualisation(masked_input, masked_adj_mx)
+            masked_input, masked_adj_mx = self.create_masked_input(subgraph, batch['X'], adj_mx)
 #                batch['X'] = masked_input
-                    masked_batch = deepcopy(batch)
-                    masked_batch['X'] = masked_input
+            masked_batch = deepcopy(batch)
+            masked_batch['X'] = masked_input # (1, 12, 207, 1)
 
-                    masked_batch.to_tensor(self.device)
-                    loss = model.calculate_loss(masked_batch)
-                    output = model.predict(masked_batch)
-                    ### Inverse scaling of output to get traffic speed values.
-                    y_true = self.scaler.inverse_transform(output[..., :self.output_window])
-                    print(y_true.shape)
+            masked_batch.to_tensor(self.device)
+#                    loss = model.calculate_loss(masked_batch)
+            exp_y = model.predict(masked_batch) # (1, 12, 207, 1)
 
-                    error = self.calculate_target_error(target_node, masked_batch['y'], output)
+            batch.to_tensor(self.device)
+            model_y = model.predict(batch)
+
+            ### Inverse scaling of output to get traffic speed values.
+            y_predicted = self.scaler.inverse_transform(exp_y[..., :self.output_window]) # (1, 12, 207, 1)
+
+#            print(f'Output: {output}')
+#            print(f'Y_true: {y_true}')
+            self.data_graph_visualisation(batch['X'].cpu() ,masked_input, model_y.cpu(), exp_y.cpu(), adj_mx)
+            error = self.calculate_target_error(target_node, masked_batch['y'], exp_y)
 #                    achieved_errors.append(error.item())
 #                all_errors[subgraph_size] = achieved_errors
 ##                len(self.candidate_events)\\4, (len(self.candidate_events)\\2), len(self.candidate_events)

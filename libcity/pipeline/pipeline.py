@@ -28,7 +28,6 @@ def run_model(task=None, model_name=None, dataset_name=None, config_file=None,
     """
     # load config
     # Parses the config file containing the user-defined parameters and uses them to modify the pipeline's parameter settings.
-    print(task, model_name, dataset_name, config_file, saved_model, train, other_args)
     config = ConfigParser(task, model_name, dataset_name,
                           config_file, saved_model, train, other_args)
     exp_id = config.get('exp_id', None)

@@ -7,6 +7,8 @@ import torch.nn.init as init
 import torch.nn.functional as F
 from libcity.model import loss
 from libcity.model.abstract_traffic_state_model import AbstractTrafficStateModel
+import seaborn as sns
+from matplotlib import pyplot as plt
 
 import pickle as pck
 
