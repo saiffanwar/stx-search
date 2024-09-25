@@ -14,6 +14,7 @@ from libcity.utils import get_model
 from libcity.config import ConfigParser
 
 from graph_visualiser import graph_visualiser
+from mcts import MCTS
 
 def ncr(n, r):
     f = math.factorial
@@ -32,7 +33,7 @@ class graphNode():
 
 class Explainer():
 
-    def __init__(self):
+    def __init__(self, target_node_index=20, target_timestamp=0):
         self.task='traffic_state_pred'
         self.model_name='STGCN'
         self.dataset_name='METR_LA'
@@ -44,9 +45,18 @@ class Explainer():
         self.device = self.config.get('device', torch.device('cpu'))
         self.input_window = self.config.get('input_window', 3)
         self.output_window = self.config.get('output_window', 1)
-        self.target_index = 50
+        self.target_index = 20
         self.target_timestamp = 0
 
+    def generate_graph_nodes(self, x):
+        window_size = np.array(x).shape[1]
+        num_nodes = np.array(x).shape[2]
+        nodes = [[] for i in range(window_size)]
+
+        for t in range(window_size):
+            for n in range(num_nodes):
+                nodes[t].append(graphNode(n, t, x[0][t][n][0]))
+        return nodes
 
 
     def load_data(self):
@@ -60,7 +70,7 @@ class Explainer():
     def load_model(self, model_path, data_feature):
 
         model = get_model(self.config, data_feature)
-        model_state, optimizer_state = torch.load(model_path)
+        model_state, optimizer_state = torch.load(model_path, map_location=self.device)
         model.load_state_dict(model_state)
         model = model.to(self.device)
 
@@ -79,7 +89,9 @@ class Explainer():
             error: The absolute error of the target node.
         '''
 
-        error = torch.abs(target_node.speed - pred[0][self.target_timestamp][self.target_index][0])
+        truth = self.scaler.inverse_transform(truth.cpu())
+        pred = self.scaler.inverse_transform(pred.cpu())
+        error = torch.abs(truth[0][self.target_timestamp][self.target_index][0] - pred[0][self.target_timestamp][self.target_index][0])
 
         return error
 
@@ -113,7 +125,7 @@ class Explainer():
         candidate_events = []
         for t in range(self.input_window):
             for n in two_hop_neighbours:
-                candidate_events.append(graphNode(n, t, x[0][t][n][0]))
+                candidate_events.append(self.all_nodes[t][n])
         return candidate_events
 
     def create_masked_input(self, subgraph_nodes, x, adj_mx):
@@ -133,66 +145,135 @@ class Explainer():
 #            else:
 #                masked_input[0][node[0]][node[1]] = torch.FloatTensor([(-self.scaler.mean)/self.scaler.std])
         masked_adj_mx = adj_mx
+
+        for t in range(self.input_window):
+            timestamp_nodes = [s.node_index for s in subgraph_nodes if s.timestamp == t]
+
         return masked_input, masked_adj_mx
 
 #    def calculate_fidelity(self, subgraph, batch, model):
+
+    def exp_fidelity(self, exp_nodes, batch):
+        '''
+        Calculate the fidelity of the model for a given subgraph. Fidelity is defined using the
+        metric proposed in arXiv:2306.05760.
+
+        Args:
+            subgraph: A list of graphNode() objects that are part of the computation graph.
+            batch: The batch of data for which the fidelity is to be calculated.
+
+        Returns:
+            fidelity: The fidelity of the model for the given subgraph.
+        '''
+        x = batch['X']
+        y = batch['y']
+        adj_mx = self.adj_mx
+        explanation_graph, adj_mx = self.create_masked_input(exp_nodes, x, adj_mx)
+
+        unimportant_nodes = [node for node in np.array(self.all_nodes).flatten() if node not in exp_nodes]
+        non_explanation_graph, adj_mx = self.create_masked_input(unimportant_nodes, x, adj_mx)
+
+
+        explanation_y = self.make_prediction_from_masked_input(explanation_graph, batch)
+#        self.data_graph_visualisation(batch['X'].cpu(), explanation_graph, self.model_y, explanation_y.cpu(), adj_mx)
+        non_explanation_y = self.make_prediction_from_masked_input(non_explanation_graph, batch)
+
+        explanation_error = self.calculate_target_error(self.target_node, self.model_y, explanation_y)
+        non_explanation_error = self.calculate_target_error(self.target_node, self.model_y, non_explanation_y)
+
+
+        return explanation_error
+#        if (explanation_error - non_explanation_error) == 0:
+#            return np.inf
+#        else:
+#            fidelity =  1/(explanation_error - non_explanation_error)
+##        print(explanation_error, non_explanation_error, fidelity)
+#        return fidelity.float().numpy()
+
+
+    def make_prediction_from_masked_input(self, masked_input, batch):
+
+        masked_batch = deepcopy(batch)
+        masked_batch['X'] = masked_input # (1, 12, 207, 1)
+
+        masked_batch.to_tensor(self.device)
+#        loss = model.calculate_loss(masked_batch)
+        y = self.model.predict(masked_batch) # (1, 12, 207, 1)
+
+        return y
 
     def data_graph_visualisation(self, input_graph, masked_input, y_true, y_predicted, adj_mx):
         graph_visualiser(self, input_graph, masked_input, y_true, y_predicted, adj_mx)
 
 
-    def main(self):
-
-        data_feature, train_data, valid_data, test_data = self.load_data()
-        self.scaler = data_feature['scaler']
-
-        model_path = os.getcwd()+'/libcity/cache/1/model_cache/STGCN_METR_LA.m'
-        model = self.load_model(model_path, data_feature)
-        adj_mx = data_feature['adj_mx']
+def run_explainer():
 
 
-        with torch.no_grad():
-            model.eval()
-            batch = next(iter(test_data))
+    explainer = Explainer(target_node_index=20, target_timestamp=0)
+    data_feature, train_data, valid_data, test_data = explainer.load_data()
+    explainer.scaler = data_feature['scaler']
+
+    model_path = os.getcwd()+'/libcity/cache/1/model_cache/STGCN_METR_LA.m'
+    explainer.model = explainer.load_model(model_path, data_feature)
+    adj_mx = data_feature['adj_mx']
+    explainer.adj_mx = adj_mx
+
+
+    with torch.no_grad():
+        explainer.model.eval()
+        batch = next(iter(test_data))
 #            print(torch.tensor(batch['X']).shape)
 #            print(dir(batch))
-            batch['X'] = batch['X'][:1]
-            batch['y'] = batch['y'][:1]
+        batch['X'] = batch['X'][:1]
+        batch['y'] = batch['y'][:1]
 
 
+        batch.to_tensor(explainer.device)
+        explainer.model_y = explainer.model.predict(batch)
+        explainer.model_y.cpu()
 
-            target_node = graphNode(self.target_index, self.target_timestamp, batch['y'][0][self.target_timestamp][self.target_index][0])
+        explainer.all_nodes = explainer.generate_graph_nodes(batch['X'])
 
-#            self.data_graph_visualisation(batch['X'], adj_mx)
-            self.candidate_events = self.fetch_computation_graph(batch['X'], adj_mx, target_node)
+        explainer.target_node = graphNode(explainer.target_index, explainer.target_timestamp, batch['y'][0][explainer.target_timestamp][explainer.target_index][0])
+
+#            explainer.data_graph_visualisation(batch['X'], adj_mx)
+        explainer.candidate_events = explainer.fetch_computation_graph(batch['X'], adj_mx, explainer.target_node)
 
 
-            subgraph_sizes = [5,10,25,50,100,int(np.floor(len(self.candidate_events)/4)),int(np.floor(len(self.candidate_events)/2)),len(self.candidate_events)]
+        subgraph_sizes = [5,10,25,50,100,int(np.floor(len(explainer.candidate_events)/4)),int(np.floor(len(explainer.candidate_events)/2)),len(explainer.candidate_events)]
 #                achieved_errors = []
 #                for i in tqdm(range(100)):
-            subgraph_size = 50
-            subgraph = random.sample(self.candidate_events, subgraph_size)
-#            subgraph = self.candidate_events
+        subgraph_size = 50
+#            random.seed(0)
+        subgraph = random.sample(explainer.candidate_events, subgraph_size)
+        mcts = MCTS(explainer.candidate_events, explainer, batch)
+        print('Running explainer')
+#        print(f'Searching through {ncr(2484, exp_size)} possible subgraphs')
+        mcts.run_mcts()
 
-            masked_input, masked_adj_mx = self.create_masked_input(subgraph, batch['X'], adj_mx)
-#                batch['X'] = masked_input
-            masked_batch = deepcopy(batch)
-            masked_batch['X'] = masked_input # (1, 12, 207, 1)
 
-            masked_batch.to_tensor(self.device)
-#                    loss = model.calculate_loss(masked_batch)
-            exp_y = model.predict(masked_batch) # (1, 12, 207, 1)
+        # Calculate fidelity of explanation
+#        explainer.exp_fidelity(subgraph, batch)
 
-            batch.to_tensor(self.device)
-            model_y = model.predict(batch)
+#            subgraph = explainer.candidate_events
 
-            ### Inverse scaling of output to get traffic speed values.
-            y_predicted = self.scaler.inverse_transform(exp_y[..., :self.output_window]) # (1, 12, 207, 1)
+#        masked_input, masked_adj_mx = explainer.create_masked_input(subgraph, batch['X'], adj_mx)
+##                batch['X'] = masked_input
+#        masked_batch = deepcopy(batch)
+#        masked_batch['X'] = masked_input # (1, 12, 207, 1)
+#
+#        masked_batch.to_tensor(explainer.device)
+##                    loss = model.calculate_loss(masked_batch)
+#        exp_y = model.predict(masked_batch) # (1, 12, 207, 1)
+#
+#
+#        ### Inverse scaling of output to get traffic speed values.
+#        y_predicted = explainer.scaler.inverse_transform(exp_y[..., :explainer.output_window]) # (1, 12, 207, 1)
 
 #            print(f'Output: {output}')
 #            print(f'Y_true: {y_true}')
-            self.data_graph_visualisation(batch['X'].cpu() ,masked_input, model_y.cpu(), exp_y.cpu(), adj_mx)
-            error = self.calculate_target_error(target_node, masked_batch['y'], exp_y)
+        explainer.data_graph_visualisation(batch['X'].cpu() ,masked_input, model_y.cpu(), exp_y.cpu(), adj_mx)
+#        error = explainer.calculate_target_error(explainer.target_node, masked_batch['y'], exp_y)
 #                    achieved_errors.append(error.item())
 #                all_errors[subgraph_size] = achieved_errors
 ##                len(self.candidate_events)\\4, (len(self.candidate_events)\\2), len(self.candidate_events)
@@ -208,8 +289,6 @@ class Explainer():
 
 
 
+run_explainer()
 
-
-exp = Explainer()
-exp.main()
 
