@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 import copy
+import pickle as pck
 
 
 class treeNode():
@@ -15,7 +16,7 @@ class treeNode():
 
 class MCTS():
 
-    def  __init__(self, candidate_events, explainer, batch, exp_size=2000):
+    def  __init__(self, candidate_events, explainer, batch, exp_size=100):
         '''
         Args:
             candidate_events: list of graphNode() objects that are possible candidates for the explanation subset
@@ -32,6 +33,7 @@ class MCTS():
         self.best_exp = None
         self.best_exp_reward = np.inf
         self.leaves = [self.root]
+        self.results_dir = 'results/METR_LA/'
 
     def uct(self, tree_node, c=np.sqrt(2)):
         '''
@@ -41,11 +43,12 @@ class MCTS():
         if tree_node.visits == 0:
             return np.inf
         else:
-            return tree_node.cumulative_reward / tree_node.visits + c*np.sqrt(np.log(tree_node.parent.visits) / tree_node.visits)
+            return (tree_node.cumulative_reward / tree_node.visits) + c*np.sqrt(np.log(tree_node.parent.visits) / tree_node.visits)
 
     def selection(self, tree_node):
 #        print('Selection...')
-        return min(tree_node.children, key=lambda x: self.uct(x))
+        best_node = min(tree_node.children, key=lambda x: self.uct(x))
+        return best_node
 
     def simulation(self, leaf_node):
         '''
@@ -63,6 +66,9 @@ class MCTS():
         if reward < self.best_exp_reward:
             self.best_exp = possible_events
             self.best_exp_reward = reward
+            exp_subgraph = [self.all_event_graph_nodes[e] for e in self.best_exp]
+            with open(self.results_dir+'best_exp.pck', 'wb') as f:
+                pck.dump(exp_subgraph , f)
         return reward, possible_events
 
     def find_all_ancestors(self, exp_events):
@@ -134,12 +140,15 @@ class MCTS():
             self.backpropagate(reward, ancestors)
 #            print('Best Explanation: {}'.format(self.best_exp))
             print('Best Explanation Fidelity: {}'.format(self.best_exp_reward))
+        print(self.best_exp, len(self.best_exp))
+        exp_subgraph = [self.all_event_graph_nodes[e] for e in self.best_exp]
+        return exp_subgraph
 
 
 '''
-Best fidelity so far is 12.05
+Best error so far with 2000 exp size is 0.305 after 50 iterations of MCTS upto a depth of at least 40
 Best error so far with 1000 exp size is 2.188 after 50 iterations of MCTS upto a depth of at least 42
-Best error so far with 500 exp size is 3.208 after 50 iterations of MCTS upto a depth of at least 27
+Best error so far with 500 exp size is 2.719 after 50 iterations of MCTS upto a depth of at least 27
 '''
 
 

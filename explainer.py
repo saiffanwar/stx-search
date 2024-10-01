@@ -8,13 +8,19 @@ from copy import deepcopy
 from matplotlib import pyplot as plt
 from pprint import pprint
 import seaborn as sns
+import pickle as pck
 
 from libcity.data import get_dataset
 from libcity.utils import get_model
 from libcity.config import ConfigParser
 
-from graph_visualiser import graph_visualiser
+from visualisation_utils import graph_visualiser
 from mcts import MCTS
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-m', '--mode', type=str, default='generate', help='Mode of operation: generate or visualise')
+args = parser.parse_args()
 
 def ncr(n, r):
     f = math.factorial
@@ -202,9 +208,6 @@ class Explainer():
 
         return y
 
-    def data_graph_visualisation(self, input_graph, masked_input, y_true, y_predicted, adj_mx):
-        graph_visualiser(self, input_graph, masked_input, y_true, y_predicted, adj_mx)
-
 
 def run_explainer():
 
@@ -236,57 +239,28 @@ def run_explainer():
 
         explainer.target_node = graphNode(explainer.target_index, explainer.target_timestamp, batch['y'][0][explainer.target_timestamp][explainer.target_index][0])
 
-#            explainer.data_graph_visualisation(batch['X'], adj_mx)
-        explainer.candidate_events = explainer.fetch_computation_graph(batch['X'], adj_mx, explainer.target_node)
-
-
-        subgraph_sizes = [5,10,25,50,100,int(np.floor(len(explainer.candidate_events)/4)),int(np.floor(len(explainer.candidate_events)/2)),len(explainer.candidate_events)]
-#                achieved_errors = []
-#                for i in tqdm(range(100)):
-        subgraph_size = 50
+        if args.mode == 'generate':
+            explainer.candidate_events = explainer.fetch_computation_graph(batch['X'], adj_mx, explainer.target_node)
+            subgraph_sizes = [5,10,25,50,100,int(np.floor(len(explainer.candidate_events)/4)),int(np.floor(len(explainer.candidate_events)/2)),len(explainer.candidate_events)]
+            subgraph_size = 50
 #            random.seed(0)
-        subgraph = random.sample(explainer.candidate_events, subgraph_size)
-        mcts = MCTS(explainer.candidate_events, explainer, batch)
-        print('Running explainer')
-#        print(f'Searching through {ncr(2484, exp_size)} possible subgraphs')
-        mcts.run_mcts()
+            subgraph = random.sample(explainer.candidate_events, subgraph_size)
+            mcts = MCTS(explainer.candidate_events, explainer, batch)
+            print('Running explainer')
+            exp_subgraph = mcts.run_mcts()
 
+        elif args.mode == 'visualise':
 
-        # Calculate fidelity of explanation
-#        explainer.exp_fidelity(subgraph, batch)
-
-#            subgraph = explainer.candidate_events
-
-#        masked_input, masked_adj_mx = explainer.create_masked_input(subgraph, batch['X'], adj_mx)
-##                batch['X'] = masked_input
-#        masked_batch = deepcopy(batch)
-#        masked_batch['X'] = masked_input # (1, 12, 207, 1)
-#
-#        masked_batch.to_tensor(explainer.device)
-##                    loss = model.calculate_loss(masked_batch)
-#        exp_y = model.predict(masked_batch) # (1, 12, 207, 1)
-#
-#
-#        ### Inverse scaling of output to get traffic speed values.
-#        y_predicted = explainer.scaler.inverse_transform(exp_y[..., :explainer.output_window]) # (1, 12, 207, 1)
-
-#            print(f'Output: {output}')
-#            print(f'Y_true: {y_true}')
-        explainer.data_graph_visualisation(batch['X'].cpu() ,masked_input, model_y.cpu(), exp_y.cpu(), adj_mx)
-#        error = explainer.calculate_target_error(explainer.target_node, masked_batch['y'], exp_y)
-#                    achieved_errors.append(error.item())
-#                all_errors[subgraph_size] = achieved_errors
-##                len(self.candidate_events)\\4, (len(self.candidate_events)\\2), len(self.candidate_events)
-#                ax.hist(achieved_errors, bins=[0.01*i for i in range(0, 100)])
-#
-#                print('Mean error: ', np.mean(achieved_errors))
-#        ax.set_xlabel('Error')
-#        fig.savefig('error_histograms.png')
-#        plt.show()
-
-
-
-
+            with open('results/METR_LA/best_exp.pck', 'rb') as f:
+                exp_subgraph = pck.load(f)
+            masked_input, masked_adj_mx = explainer.create_masked_input(exp_subgraph, batch['X'], explainer.adj_mx)
+            masked_batch = deepcopy(batch)
+            masked_batch['X'] = masked_input # (1, 12, 207, 1)
+            masked_batch.to_tensor(explainer.device)
+            exp_y = explainer.model.predict(masked_batch) # (1, 12, 207, 1)
+            ### Inverse scaling of output to get traffic speed values.
+            y_predicted = explainer.scaler.inverse_transform(exp_y[..., :explainer.output_window]) # (1, 12, 207, 1)
+            graph_visualiser(explainer, batch['X'].cpu() ,masked_input, explainer.model_y.cpu(), exp_y.cpu(), adj_mx)
 
 
 run_explainer()
