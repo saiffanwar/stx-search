@@ -4,7 +4,7 @@ import numpy as np
 import json
 from matplotlib import pyplot as plt
 from plotly.subplots import make_subplots
-import dill as pck
+import pickle as pck
 import torch
 
 

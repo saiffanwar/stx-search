@@ -4,6 +4,7 @@ from tqdm import tqdm
 import copy
 import pickle as pck
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 import os
 
 
@@ -150,12 +151,43 @@ class MCTS():
                     prev_node = path[path.index(node)-1]
                     start_x, start_y = node_locations[prev_node]
                     end_x, end_y = node_locations[node]
+
                     ax.plot([start_x, end_x], [start_y, end_y], 'k-', zorder=0, alpha=0.5)
 
-            ax.scatter(xs, ys, s=100, zorder=1, )
-        fig.savefig(f'{ self.results_dir }exp_evolution_iter_{len(all_paths)}.png')
+                ax.scatter(xs, ys, s=100, zorder=1, )
 
+#        plt.show()
+#        fig.savefig(f'{ self.results_dir }exp_evolution_iter_{len(all_paths)}.png')
 
+    def tree_search_animation(self):
+        with open(self.results_dir+'all_paths.pck', 'rb') as f:
+            all_paths = pck.load(f)
+
+        fig, ax = plt.subplots(figsize=(10, 10))
+        ax.set_xlim(-1, len(all_paths[-1])*1.1)
+        ax.set_ylim(-1, len(all_paths)*1.1)
+        node_locations = {}
+        def animate(n):
+            path = all_paths[n]
+            xs, ys = [], []
+            for node in path:
+                if node in node_locations.keys():
+                    pass
+                else:
+                    node_locations[node] = [path.index(node), n]
+                    xs.append(node_locations[node][0])
+                    ys.append(node_locations[node][1])
+
+                if node != path[0]:
+                    prev_node = path[path.index(node)-1]
+                    start_x, start_y = node_locations[prev_node]
+                    end_x, end_y = node_locations[node]
+
+                    ax.plot([start_x, end_x], [start_y, end_y], 'k-', zorder=0, alpha=0.5)
+
+                ax.scatter(xs, ys, s=100, zorder=1, )
+        ani = animation.FuncAnimation(fig, animate, frames=len(all_paths), interval=100)
+        ani.save(f'{ self.results_dir }exp_evolution_iter_{len(all_paths)}.mp4', writer='ffmpeg')
 
 
     def run_mcts(self, num_iterations=100):
@@ -199,5 +231,6 @@ Best error so far with 2000 exp size is 0.305 after 50 iterations of MCTS upto a
 Best error so far with 1000 exp size is 2.188 after 50 iterations of MCTS upto a depth of at least 42
 Best error so far with 500 exp size is 2.719 after 50 iterations of MCTS upto a depth of at least 27
 '''
+
 
 

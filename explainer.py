@@ -247,7 +247,8 @@ def run_explainer():
             subgraph = random.sample(explainer.candidate_events, subgraph_size)
             mcts = MCTS(explainer.candidate_events, explainer, batch)
             print('Running explainer')
-            exp_subgraph = mcts.run_mcts()
+            mcts.tree_search_animation()
+#            exp_subgraph = mcts.run_mcts()
 
         elif args.mode == 'visualise':
 
