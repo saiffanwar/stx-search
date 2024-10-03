@@ -6,10 +6,11 @@ import pickle as pck
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import os
+import torch
 
 
-class treeNode():
-    def __init__(self, current_node_ids, events, children=[], parent=None):
+class treeNode:
+    def __init__(self, current_node_ids, events, children=[], parent=None, prior=0):
         self.parent = parent
         self.children = children
         self.events = events
@@ -17,29 +18,32 @@ class treeNode():
         self.cumulative_reward = 1e-10
         self.expanded = False
         self.node_id = np.random.randint(0, 1000000)
+        self.prior = prior
 
-class MCTS():
+class MCTS:
 
-    def  __init__(self, candidate_events, explainer, batch, exp_size=100):
+    def  __init__(self, explainer, model, exp_size=100):
         '''
         Args:
             candidate_events: list of graphNode() objects that are possible candidates for the explanation subset
         '''
 #        self.candidate_events = candidate_events
-        self.all_event_graph_nodes = {e: event for e, event in enumerate(candidate_events)}
-        self.all_event_indices = [e for e in range(len(candidate_events))]
         self.node_ids = []
-        self.root = treeNode(current_node_ids=self.node_ids, events=self.all_event_indices)
-        self.node_ids.append(self.root.node_id)
         self.nodes_expanded = 0
         self.nodes_visited = 0
         self.explainer = explainer
-        self.batch = batch
+        self.model = model
         self.exp_size = exp_size
         self.best_exp = None
         self.best_exp_reward = np.inf
-        self.leaves = [self.root]
+        self.leaves = []
         self.results_dir = 'results/METR_LA/'
+
+        self.all_event_graph_nodes = {e: event for e, event in enumerate(self.explainer.candidate_events)}
+        self.all_event_indices = [e for e in range(len(self.explainer.candidate_events))]
+        self.root = treeNode(current_node_ids=self.node_ids, events=self.all_event_indices)
+        self.leaves.append(self.root)
+        self.node_ids.append(self.root.node_id)
 
     def uct(self, tree_node, c=0.01):
         '''
@@ -50,7 +54,9 @@ class MCTS():
             return 1e-10
         else:
 #            print((tree_node.cumulative_reward / tree_node.visits) , c*np.sqrt(tree_node.parent.visits / tree_node.visits))
-            return (tree_node.cumulative_reward / tree_node.visits) + c*np.sqrt(tree_node.parent.visits / tree_node.visits)
+            return (tree_node.cumulative_reward / tree_node.visits) + c*np.sqrt(tree_node.parent.visits / tree_node.visits)*tree_node.prior
+
+
 
     def selection(self, tree_node):
 #        print('Selection...')
@@ -72,7 +78,7 @@ class MCTS():
             possible_events.remove(random_event)
 
         exp_events = [self.all_event_graph_nodes[e] for e in possible_events]
-        reward = self.explainer.exp_fidelity(exp_events, self.batch)
+        reward = self.explainer.exp_fidelity(exp_events)
         if reward < self.best_exp_reward:
             self.best_exp = possible_events
             self.best_exp_reward = reward
@@ -114,7 +120,7 @@ class MCTS():
 
 
 
-    def expansion(self, tree_node):
+    def expansion(self, tree_node, policy):
         '''
         Args:
             tree_node: treeNode() object
@@ -124,7 +130,8 @@ class MCTS():
         for event_num, e in enumerate(tree_node.events):
 #            childs_events = [x for x in tree_node.events if x != e]
             childs_events = tree_node.events[:event_num] + tree_node.events[event_num+1:]
-            tree_node.children.append(treeNode(current_node_ids=self.node_ids, events=childs_events, parent=tree_node))
+            child_prior = policy[e]
+            tree_node.children.append(treeNode(current_node_ids=self.node_ids, events=childs_events, parent=tree_node, prior=child_prior))
             self.node_ids.append(tree_node.children[-1].node_id)
             self.leaves.append(tree_node.children[-1])
 #        print('Expanding node with {} children'.format(len(tree_node.children)))
@@ -156,8 +163,7 @@ class MCTS():
 
                 ax.scatter(xs, ys, s=100, zorder=1, )
 
-#        plt.show()
-#        fig.savefig(f'{ self.results_dir }exp_evolution_iter_{len(all_paths)}.png')
+        fig.savefig(f'{ self.results_dir }exp_evolution_iter_{len(all_paths)}.png')
 
     def tree_search_animation(self):
         with open(self.results_dir+'all_paths.pck', 'rb') as f:
@@ -189,13 +195,25 @@ class MCTS():
         ani = animation.FuncAnimation(fig, animate, frames=len(all_paths), interval=100)
         ani.save(f'{ self.results_dir }exp_evolution_iter_{len(all_paths)}.mp4', writer='ffmpeg')
 
+    def event_indices_to_graph_nodes(self, event_indices):
+        return [self.all_event_graph_nodes[e] for e in event_indices]
 
-    def run_mcts(self, num_iterations=100):
+
+    def run_mcts(self, candidate_events, batch, num_iterations=100):
+
+        self.all_event_graph_nodes = {e: event for e, event in enumerate(candidate_events)}
+        self.all_event_indices = [e for e in range(len(candidate_events))]
+        self.root = treeNode(current_node_ids=self.node_ids, events=self.all_event_indices)
+        self.leaves.append(self.root)
+        self.node_ids.append(self.root.node_id)
+        self.batch = batch
+
         os.system(f'rm { self.results_dir }exp_evolution_iter_*.png')
         all_paths = []
         for i in tqdm(range(num_iterations)):
             leaf_node=False
             current_node = self.root
+            self.node_to_event_matrix(current_node)
 #            for child in self.root.children:
 #                print(f'Visits: {child.visits}, Value: {child.cumulative_reward}, Layer: {len(self.root.events) - len(child.events)}, Expanded: {child.expanded}')
             path = []
@@ -211,19 +229,110 @@ class MCTS():
 
             print(path)
             all_paths.append(path)
-
             reward, exp_events = self.simulation(current_node)
             ancestors = self.find_all_ancestors(exp_events)
 
             self.backpropagate(reward, ancestors)
-#            print('Best Explanation: {}'.format(self.best_exp))
             print('Best Explanation Fidelity: {}'.format(self.best_exp_reward))
             self.visualise_exp_evolution(all_paths)
             with open(self.results_dir+'all_paths.pck', 'wb') as f:
                 pck.dump(all_paths, f)
-        print(self.best_exp, len(self.best_exp))
+
         exp_subgraph = [self.all_event_graph_nodes[e] for e in self.best_exp]
         return exp_subgraph
+
+    def node_to_event_matrix(self, node):
+        events = self.event_indices_to_graph_nodes(node.events)
+        input_window, num_nodes, feature_dim = self.explainer.input_sample_shape
+        event_presence_matrix = np.zeros((self.explainer.input_sample_shape), dtype=np.float32)
+
+        for event in events:
+            event_presence_matrix[event.timestamp, event.node_index, :] = 1
+
+#        event_presence_matrix = np.reshape(event_presence_matrix, (1, input_window, num_nodes, feature_dim))
+        # Leave at cpu
+        event_presence_matrix = torch.tensor(event_presence_matrix)
+        return event_presence_matrix
+
+
+    def generate_probability_matrix_for_children(self, tree_node):
+#        events = self.event_indices_to_graph_nodes(tree_node.events)
+        probabilities = np.zeros((self.explainer.input_sample_shape))
+        for child in tree_node.children:
+            # Find the event that was removed to create the child node, i.e., the action taken
+            removed_event = list(set(tree_node.events) - set(child.events))[0]
+            removed_event_timestamp = self.all_event_graph_nodes[removed_event].timestamp
+            removed_event_node_index = self.all_event_graph_nodes[removed_event].node_index
+            child_score = self.uct(child)
+            # Record the score of taking that action in the probability matrix.
+            # Actions that don't exist keep a score of 0
+            probabilities[removed_event_timestamp, removed_event_node_index, :] = child_score
+
+        probabilities = probabilities.flatten()
+        # Currently a lower score is a more favourable node, so need to inverse this to imply probability.
+        # Subtract all values from the max value to inverse the probabilities.
+#        max_score = np.max(probabilities)
+#        print(max_score)
+
+        return probabilities
+
+    def is_leaf(self, tree_node):
+        if len(tree_node.events) <= self.exp_size:
+            print('Leaf node reached')
+            return True
+        else:
+            return False
+
+    def search(self, state, num_searches=100):
+        '''
+        Args:
+            state: np.array of shape (input_window, num_nodes, feature_dim)
+        '''
+        for i in range(num_searches):
+            current_node = state
+            while current_node.expanded:
+                # Currently the policy is not used in the UCT formula to help with the selection.
+                current_node = self.selection(current_node)
+
+            if not self.is_leaf(current_node):
+                input = self.node_to_event_matrix(current_node)
+                input = input.view(1, 1, self.model.input_window, self.model.num_nodes, self.model.feature_dim).to(self.model.device)
+                policy, value = self.model(input)
+                policy = policy.cpu().detach().numpy()[0]
+                print(policy.shape, value)
+                self.expansion(current_node, policy)
+#            ancestors = self.find_all_ancestors(exp_events)
+            exp_events = [self.all_event_graph_nodes[e] for e in current_node.events]
+            reward = self.explainer.exp_fidelity(exp_events)
+#            ancestors = self.find_all_ancestors(current_node.events)
+            self.backpropagate(reward, ancestors=[current_node])
+
+        action_probs = self.generate_probability_matrix_for_children(current_node)
+        print(action_probs.shape)
+
+
+
+#        current_node = self.root
+#        while True:
+#            self.expansion(current_node)
+#            self.leaves.remove(current_node)
+#            x_train.append(self.node_to_event_matrix(current_node))
+#            with open(self.results_dir+'x_train.pck', 'wb') as f:
+#                pck.dump(x_train, f)
+#            y_train.append([self.generate_probability_matrix_for_children(current_node), 0])
+#
+#            random_event = np.random.choice(current_node.events)
+#            current_node.events.remove(random_event)
+#            if len(current_node.events) == self.exp_size:
+#                exp_events = [self.all_event_graph_nodes[e] for e in current_node.events]
+#                reward = self.explainer.exp_fidelity(exp_events, self.explainer.batch)
+#                for x in x_train:
+#                    y_train.append(reward)
+#
+#        return x_train, y_train
+#
+#
+#
 
 
 '''

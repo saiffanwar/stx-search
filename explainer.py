@@ -30,14 +30,14 @@ def ncr(n, r):
 def flatten(l):
     return [item for sublist in l for item in sublist]
 
-class graphNode():
+class graphNode:
     def __init__(self,node_index, timestamp, speed):
         self.node_index = node_index
         self.timestamp = timestamp
         self.speed = speed
 
 
-class Explainer():
+class Explainer:
 
     def __init__(self, target_node_index=20, target_timestamp=0):
         self.task='traffic_state_pred'
@@ -48,13 +48,15 @@ class Explainer():
         self.train=False
         self.other_args={'exp_id': '1', 'seed': 0}
         self.config = ConfigParser(self.task, self.model_name, self.dataset_name, self.config_file, self.saved_model, self.train, self.other_args)
-        self.device = self.config.get('device', torch.device('cpu'))
+#        self.device = self.config.get('device', torch.device('cpu'))
+        self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self.input_window = self.config.get('input_window', 3)
         self.output_window = self.config.get('output_window', 1)
         self.target_index = 20
         self.target_timestamp = 0
 
     def generate_graph_nodes(self, x):
+        x = x.cpu()
         window_size = np.array(x).shape[1]
         num_nodes = np.array(x).shape[2]
         nodes = [[] for i in range(window_size)]
@@ -69,6 +71,7 @@ class Explainer():
 
         dataset = get_dataset(self.config)
         train_data, valid_data, test_data = dataset.get_data()
+        self.input_sample_shape = np.array(next(iter(test_data))['X']).shape[1:]
         data_feature = dataset.get_data_feature()
         return data_feature, train_data, valid_data, test_data
 
@@ -159,30 +162,30 @@ class Explainer():
 
 #    def calculate_fidelity(self, subgraph, batch, model):
 
-    def exp_fidelity(self, exp_nodes, batch):
+    def exp_fidelity(self, exp_nodes):
         '''
         Calculate the fidelity of the model for a given subgraph. Fidelity is defined using the
         metric proposed in arXiv:2306.05760.
 
         Args:
             subgraph: A list of graphNode() objects that are part of the computation graph.
-            batch: The batch of data for which the fidelity is to be calculated.
 
         Returns:
             fidelity: The fidelity of the model for the given subgraph.
         '''
-        x = batch['X']
-        y = batch['y']
+        x = self.batch['X'].cpu()
+        y = self.batch['y'].cpu()
         adj_mx = self.adj_mx
         explanation_graph, adj_mx = self.create_masked_input(exp_nodes, x, adj_mx)
+        print(explanation_graph.get_device())
 
         unimportant_nodes = [node for node in np.array(self.all_nodes).flatten() if node not in exp_nodes]
         non_explanation_graph, adj_mx = self.create_masked_input(unimportant_nodes, x, adj_mx)
 
 
-        explanation_y = self.make_prediction_from_masked_input(explanation_graph, batch)
+        explanation_y = self.make_prediction_from_masked_input(explanation_graph, self.batch)
 #        self.data_graph_visualisation(batch['X'].cpu(), explanation_graph, self.model_y, explanation_y.cpu(), adj_mx)
-        non_explanation_y = self.make_prediction_from_masked_input(non_explanation_graph, batch)
+        non_explanation_y = self.make_prediction_from_masked_input(non_explanation_graph, self.batch)
 
         explanation_error = self.calculate_target_error(self.target_node, self.model_y, explanation_y)
         non_explanation_error = self.calculate_target_error(self.target_node, self.model_y, non_explanation_y)
@@ -200,7 +203,7 @@ class Explainer():
     def make_prediction_from_masked_input(self, masked_input, batch):
 
         masked_batch = deepcopy(batch)
-        masked_batch['X'] = masked_input # (1, 12, 207, 1)
+        masked_batch['X'] = masked_input.cpu() # (1, 12, 207, 1)
 
         masked_batch.to_tensor(self.device)
 #        loss = model.calculate_loss(masked_batch)
@@ -208,9 +211,11 @@ class Explainer():
 
         return y
 
+def batch_to_cpu(batch):
+    for key in batch.data:
+        batch.data[key] = batch.data[key].to('cpu')
 
 def run_explainer():
-
 
     explainer = Explainer(target_node_index=20, target_timestamp=0)
     data_feature, train_data, valid_data, test_data = explainer.load_data()
@@ -235,6 +240,8 @@ def run_explainer():
         explainer.model_y = explainer.model.predict(batch)
         explainer.model_y.cpu()
 
+        batch_to_cpu(batch)
+
         explainer.all_nodes = explainer.generate_graph_nodes(batch['X'])
 
         explainer.target_node = graphNode(explainer.target_index, explainer.target_timestamp, batch['y'][0][explainer.target_timestamp][explainer.target_index][0])
@@ -245,10 +252,13 @@ def run_explainer():
             subgraph_size = 50
 #            random.seed(0)
             subgraph = random.sample(explainer.candidate_events, subgraph_size)
-            mcts = MCTS(explainer.candidate_events, explainer, batch)
-            print('Running explainer')
-            mcts.tree_search_animation()
-#            exp_subgraph = mcts.run_mcts()
+            explainer.batch = batch
+            return explainer
+#            mcts = MCTS(explainer)
+
+#            mcts.tree_search_animation()
+#            exp_subgraph = mcts.run_mcts(candidate_events=explainer.candidate_events, batch=batch)
+#            mcts.self_play(candidate_events=explainer.candidate_events)
 
         elif args.mode == 'visualise':
 

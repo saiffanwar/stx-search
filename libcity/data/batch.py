@@ -56,6 +56,7 @@ class Batch(object):
                 raise TypeError(
                     'Batch to_tensor, only support int, float but you give {}'.format(self.feature_name[key]))
 
+
     def to_ndarray(self):
         for key in self.data:
             if self.feature_name[key] == 'int':
