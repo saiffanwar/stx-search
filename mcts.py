@@ -18,7 +18,7 @@ class treeNode:
         self.cumulative_reward = 1e-10
         self.expanded = False
         self.node_id = np.random.randint(0, 1000000)
-        self.prior = prior
+        self.prior = prior.cpu().detach().numpy() if isinstance(prior, torch.Tensor) else prior
 
 class MCTS:
 
@@ -269,6 +269,8 @@ class MCTS:
             probabilities[removed_event_timestamp, removed_event_node_index, :] = child_score
 
         probabilities = probabilities.flatten()
+        probabilities = [np.max(probabilities) - x if x != 0 else 0 for x in probabilities ]
+        probabilities = np.exp(probabilities) / np.sum(np.exp(probabilities))
         # Currently a lower score is a more favourable node, so need to inverse this to imply probability.
         # Subtract all values from the max value to inverse the probabilities.
 #        max_score = np.max(probabilities)
@@ -283,12 +285,15 @@ class MCTS:
         else:
             return False
 
-    def search(self, state, num_searches=100):
+    def search(self, state, num_searches=10):
         '''
         Args:
             state: np.array of shape (input_window, num_nodes, feature_dim)
+
+            maybe the search is only going down 1 level, need to check this.
+            What if the current_node is a leaf node, then which action probs do we return?
         '''
-        for i in range(num_searches):
+        for i in tqdm(range(num_searches)):
             current_node = state
             while current_node.expanded:
                 # Currently the policy is not used in the UCT formula to help with the selection.
@@ -297,18 +302,27 @@ class MCTS:
             if not self.is_leaf(current_node):
                 input = self.node_to_event_matrix(current_node)
                 input = input.view(1, 1, self.model.input_window, self.model.num_nodes, self.model.feature_dim).to(self.model.device)
-                policy, value = self.model(input)
+                policy, reward = self.model(input)
+                reward = reward.cpu().detach().numpy()[0]
                 policy = policy.cpu().detach().numpy()[0]
-                print(policy.shape, value)
                 self.expansion(current_node, policy)
 #            ancestors = self.find_all_ancestors(exp_events)
-            exp_events = [self.all_event_graph_nodes[e] for e in current_node.events]
-            reward = self.explainer.exp_fidelity(exp_events)
+            else:
+                exp_events = [self.all_event_graph_nodes[e] for e in current_node.events]
+                reward = self.explainer.exp_fidelity(exp_events)
+                if reward < self.best_exp_reward:
+                    self.best_exp = current_node.events
+                    self.best_exp_reward = reward
+                    exp_subgraph = [self.all_event_graph_nodes[e] for e in self.best_exp]
+                    with open(self.results_dir+'best_exp.pck', 'wb') as f:
+                        pck.dump(exp_subgraph , f)
 #            ancestors = self.find_all_ancestors(current_node.events)
             self.backpropagate(reward, ancestors=[current_node])
 
-        action_probs = self.generate_probability_matrix_for_children(current_node)
-        print(action_probs.shape)
+        action_probs = self.generate_probability_matrix_for_children(state)
+        reward = state.cumulative_reward/state.visits
+
+        return action_probs, reward
 
 
 

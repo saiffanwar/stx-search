@@ -32,15 +32,46 @@ class AlphaZero:
         y_train = []
 
         current_node = self.mcts.root
-        while True:
-            self.mcts.search(current_node)
+        for i in range(10):
+            action_probs, reward = self.mcts.search(current_node)
+            x_train.append(self.mcts.node_to_event_matrix(current_node))
+            y_train.append([action_probs, reward])
+
+            # Select the next node based on the action probabilities
+            selected_child = np.random.choice(list(range(len(action_probs))), p=action_probs)
+            current_node = current_node.children[selected_child]
+
+            print(f'Size of tree: {len(self.mcts.node_ids)}')
+
+        return x_train, y_train
 #            x_train.append(self.mcts.node_to_event_matrix(current_node))
 #            if current_node.expanded == False:
 #                self.mcts.expansion(current_node)
 #            y_train.append([self.mcts.generate_probability_matrix_for_children(current_node), 0])
 
+    def train(self, x_train, y_train):
+        x_train = x_train[0].view(1, 1, self.model.input_window, self.model.num_nodes, self.model.feature_dim).to(self.model.device)
+#        y_train = y_train[0].view(1, 1, self.model.input_window, self.model.num_nodes, self.model.feature_dim).to(self.model.device)
+        vals_y = torch.tensor([y_train[0][1]]).to(self.model.device)
+        probs_y = torch.tensor([y_train[0][0]]).to(self.model.device)
+        print(probs_y.shape)
+
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=0.001)
+
+        for i in range(100):
+            optimizer.zero_grad()
+            policy, value = self.model(x_train)
+            policy_loss = F.cross_entropy(policy, probs_y)
+            value_loss = F.mse_loss(value, vals_y)
+            loss = policy_loss + value_loss
+            loss.backward()
+            optimizer.step()
+        print(loss)
+
     def learn(self):
-        self.self_play()
+        for epoch in range(100):
+            x_train, y_train = self.self_play()
+            self.train(x_train, y_train)
 
 
 
@@ -80,6 +111,7 @@ class PolicyModel(nn.Module):
             nn.ReLU(),
             nn.Flatten(),
             nn.Linear(self.input_window*self.num_nodes, self.input_window*self.num_nodes),
+            nn.Softmax(dim=1)
 #            nn.Unflatten(1, (self.input_window, self.num_nodes, 1))
         )
 
@@ -138,7 +170,6 @@ class ResBlock(nn.Module):
 
 results_dir = 'results/METR_LA/'
 
-@torch.no_grad()
 def main():
 #
     print(torch.cuda.is_available())  # Should return True if CUDA is available
@@ -155,7 +186,7 @@ def main():
     x_train = x_train.view(1, 1, input_window, feature_dim, num_nodes).cuda()
 #    print(f'Input Shape: {x_train.shape}')
     model = PolicyModel(input_window=input_window, num_nodes=num_nodes, feature_dim=feature_dim).to(device)
-#    summary(model, input_size=x_train.shape[1:])
+    summary(model, input_size=x_train.shape[1:])
 #    policy, value = model(x_train)
 #    print(f'Output Shape: {policy.shape}, {value.shape}')
 #    print(value)

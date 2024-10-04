@@ -177,7 +177,6 @@ class Explainer:
         y = self.batch['y'].cpu()
         adj_mx = self.adj_mx
         explanation_graph, adj_mx = self.create_masked_input(exp_nodes, x, adj_mx)
-        print(explanation_graph.get_device())
 
         unimportant_nodes = [node for node in np.array(self.all_nodes).flatten() if node not in exp_nodes]
         non_explanation_graph, adj_mx = self.create_masked_input(unimportant_nodes, x, adj_mx)
