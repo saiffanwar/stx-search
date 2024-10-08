@@ -25,7 +25,7 @@ class AlphaZero:
         self.model = model
         self.device = device
         self.explainer = explainer
-        self.mcts = MCTS(self.explainer, self.model)
+#        self.mcts = MCTS(self.explainer, self.model)
 
 
     def self_play(self, ):
@@ -33,13 +33,18 @@ class AlphaZero:
         action_probs_ys = []
         vals_ys = []
 
-        current_node = self.mcts.root
         all_paths = []
-        for i in tqdm(range(10)):
+
+        # Resest the tree before self play. avoids magnifying random biases
+        self.mcts = MCTS(self.explainer, self.model)
+        current_node = self.mcts.root
+
+        for i in tqdm(range(3)):
             action_probs, reward, paths = self.mcts.search(current_node)
 #            [all_paths.append(p) for p in paths]
             plt.bar(range(len(action_probs)), action_probs)
             plt.savefig('results/METR_LA/action_probs.png')
+            plt.close()
 
 #            self.mcts.visualise_exp_evolution(all_paths)
 
@@ -112,8 +117,8 @@ class PolicyModel(nn.Module):
 
         self.resBlock1 = ResBlock(self.num_hidden)
         self.resBlock2 = ResBlock(self.num_hidden)
-        self.resBlock3 = ResBlock(self.num_hidden)
-        self.resBlock4 = ResBlock(self.num_hidden)
+#        self.resBlock3 = ResBlock(self.num_hidden)
+#        self.resBlock4 = ResBlock(self.num_hidden)
 
         self.policyHead = nn.Sequential(
             nn.Conv3d(in_channels=self.num_hidden,
@@ -124,6 +129,7 @@ class PolicyModel(nn.Module):
             nn.ReLU(),
             nn.Flatten(),
             nn.Linear(self.input_window*self.num_nodes, self.input_window*self.num_nodes),
+            nn.ReLU(),
             nn.Softmax(dim=1)
 #            nn.Unflatten(1, (self.input_window, self.num_nodes, 1))
         )
@@ -136,15 +142,16 @@ class PolicyModel(nn.Module):
             nn.BatchNorm3d(1),
             nn.ReLU(),
             nn.Flatten(),
-            nn.Linear(self.input_window*self.num_nodes, 1)
+            nn.Linear(self.input_window*self.num_nodes, 1),
+            nn.ReLU(),
         )
 
     def forward(self, x):
         x = self.startBlock(x)
         x = self.resBlock1(x)
         x = self.resBlock2(x)
-        x = self.resBlock3(x)
-        x = self.resBlock4(x)
+#        x = self.resBlock3(x)
+#        x = self.resBlock4(x)
         policy = self.policyHead(x)
         value = self.valueHead(x)
         return policy, value

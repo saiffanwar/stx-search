@@ -192,7 +192,7 @@ class Explainer:
 #        else:
         fidelity =  (explanation_error - non_explanation_error).float().detach().numpy()
 ##        print(explanation_error, non_explanation_error, fidelity)
-        return fidelity
+        return abs(fidelity)
 
 
     def make_prediction_from_masked_input(self, masked_input, batch):
