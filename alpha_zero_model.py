@@ -2,12 +2,13 @@ import torch
 from mcts import MCTS
 import pickle as pck
 import numpy as np
+import matplotlib.pyplot as plt
 
 from torch import nn
 import torch.nn.functional as F
 from torchsummary import summary
 from explainer import run_explainer
-
+from tqdm import tqdm
 
 
 class AlphaZero:
@@ -29,37 +30,45 @@ class AlphaZero:
 
     def self_play(self, ):
         x_train = []
-        y_train = []
+        action_probs_ys = []
+        vals_ys = []
 
         current_node = self.mcts.root
-        for i in range(10):
-            action_probs, reward = self.mcts.search(current_node)
+        all_paths = []
+        for i in tqdm(range(10)):
+            action_probs, reward, paths = self.mcts.search(current_node)
+#            [all_paths.append(p) for p in paths]
+            plt.bar(range(len(action_probs)), action_probs)
+            plt.savefig('results/METR_LA/action_probs.png')
+
+#            self.mcts.visualise_exp_evolution(all_paths)
+
             x_train.append(self.mcts.node_to_event_matrix(current_node))
-            y_train.append([action_probs, reward])
+            action_probs_ys.append(action_probs)
+            vals_ys.append(reward)
 
             # Select the next node based on the action probabilities
-            selected_child = np.random.choice(list(range(len(action_probs))), p=action_probs)
-            current_node = current_node.children[selected_child]
+#            selected_child = np.random.choice(list(range(len(action_probs))), p=action_probs)
+            _, current_node = self.mcts.expansion(current_node, action_probs)
+#            current_node = current_node.children[selected_child]
+
 
             print(f'Size of tree: {len(self.mcts.node_ids)}')
 
-        return x_train, y_train
+        print(np.array(x_train).shape)
+        return np.array(x_train), np.array(action_probs_ys), np.array(vals_ys)
 #            x_train.append(self.mcts.node_to_event_matrix(current_node))
 #            if current_node.expanded == False:
 #                self.mcts.expansion(current_node)
 #            y_train.append([self.mcts.generate_probability_matrix_for_children(current_node), 0])
 
-    def train(self, x_train, y_train):
-        x_train = x_train[0].view(1, 1, self.model.input_window, self.model.num_nodes, self.model.feature_dim).to(self.model.device)
-#        y_train = y_train[0].view(1, 1, self.model.input_window, self.model.num_nodes, self.model.feature_dim).to(self.model.device)
-        vals_y = torch.tensor([y_train[0][1]]).to(self.model.device)
-        probs_y = torch.tensor([y_train[0][0]]).to(self.model.device)
-        print(probs_y.shape)
+    def train(self, x_train, action_probs_ys, vals_ys, optimizer):
 
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=0.001)
+        x_train = self.mcts.event_matrix_to_model_input(x_train)
+        print(x_train.shape)
+        probs_y, vals_y = self.mcts.prob_val_to_model_output(action_probs_ys, vals_ys)
 
-        for i in range(100):
-            optimizer.zero_grad()
+        for i in tqdm(range(100)):
             policy, value = self.model(x_train)
             policy_loss = F.cross_entropy(policy, probs_y)
             value_loss = F.mse_loss(value, vals_y)
@@ -69,9 +78,13 @@ class AlphaZero:
         print(loss)
 
     def learn(self):
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=0.0001)
+        optimizer.zero_grad()
         for epoch in range(100):
-            x_train, y_train = self.self_play()
-            self.train(x_train, y_train)
+            print(f'Self Play...')
+            x_train, action_probs_ys, vals_ys = self.self_play()
+            print(f'Training...')
+            self.train(x_train, action_probs_ys, vals_ys, optimizer)
 
 
 
@@ -137,6 +150,7 @@ class PolicyModel(nn.Module):
         return policy, value
 
 
+
 class ResBlock(nn.Module):
     def __init__(self, num_hidden):
         super().__init__()
@@ -192,6 +206,7 @@ def main():
 #    print(value)
     explainer = run_explainer()
     alpha_zero = AlphaZero(model, device, explainer)
+#    alpha_zero.mcts.run_mcts()
     alpha_zero.learn()
 
 if __name__ == '__main__':

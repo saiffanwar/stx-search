@@ -151,8 +151,6 @@ class Explainer:
             if node in subgraph_node_details:
                 masked_adj_mx[node[1]][node[1]] = 1
                 masked_input[0][node[0]][node[1]] = torch.FloatTensor(x[0][node[0]][node[1]])
-#            else:
-#                masked_input[0][node[0]][node[1]] = torch.FloatTensor([(-self.scaler.mean)/self.scaler.std])
         masked_adj_mx = adj_mx
 
         for t in range(self.input_window):
@@ -160,7 +158,6 @@ class Explainer:
 
         return masked_input, masked_adj_mx
 
-#    def calculate_fidelity(self, subgraph, batch, model):
 
     def exp_fidelity(self, exp_nodes):
         '''
@@ -189,14 +186,13 @@ class Explainer:
         explanation_error = self.calculate_target_error(self.target_node, self.model_y, explanation_y)
         non_explanation_error = self.calculate_target_error(self.target_node, self.model_y, non_explanation_y)
 
-
-        return explanation_error
+#        return explanation_error
 #        if (explanation_error - non_explanation_error) == 0:
 #            return np.inf
 #        else:
-#            fidelity =  1/(explanation_error - non_explanation_error)
+        fidelity =  (explanation_error - non_explanation_error).float().detach().numpy()
 ##        print(explanation_error, non_explanation_error, fidelity)
-#        return fidelity.float().numpy()
+        return fidelity
 
 
     def make_prediction_from_masked_input(self, masked_input, batch):
