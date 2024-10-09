@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 from torch import nn
 import torch.nn.functional as F
-from torchsummary import summary
+#from torchsummary import summary
 from explainer import run_explainer
 from tqdm import tqdm
 
@@ -43,6 +43,9 @@ class AlphaZero:
             action_probs, reward, paths = self.mcts.search(current_node)
 #            [all_paths.append(p) for p in paths]
             plt.bar(range(len(action_probs)), action_probs)
+            with open('results/probabilities.pck', 'wb') as f:
+                pck.dump(action_probs, f)
+            print(np.unique(action_probs, return_counts=True))
             plt.savefig('results/METR_LA/action_probs.png')
             plt.close()
 
@@ -54,7 +57,11 @@ class AlphaZero:
 
             # Select the next node based on the action probabilities
 #            selected_child = np.random.choice(list(range(len(action_probs))), p=action_probs)
-            _, current_node = self.mcts.expansion(current_node, action_probs)
+            if self.mcts.expansion_protocol == 'single_child':
+                current_node = self.mcts.expansion(current_node, action_probs)
+            else:
+                current_node = np.random.choice(current_node.children, p=action_probs)
+
 #            current_node = current_node.children[selected_child]
 
 
@@ -84,7 +91,7 @@ class AlphaZero:
 
     def learn(self):
         optimizer = torch.optim.Adam(self.model.parameters(), lr=0.0001)
-        optimizer.zero_grad()
+#        optimizer.zero_grad()
         for epoch in range(100):
             print(f'Self Play...')
             x_train, action_probs_ys, vals_ys = self.self_play()
@@ -204,10 +211,10 @@ def main():
     input_window, num_nodes, feature_dim = x_train.shape
 
     print(f'Original Shape: {x_train.shape}')
-    x_train = x_train.view(1, 1, input_window, feature_dim, num_nodes).cuda()
+    x_train = x_train.view(1, 1, input_window, feature_dim, num_nodes).to(device)
 #    print(f'Input Shape: {x_train.shape}')
     model = PolicyModel(input_window=input_window, num_nodes=num_nodes, feature_dim=feature_dim).to(device)
-    summary(model, input_size=x_train.shape[1:])
+#    summary(model, input_size=x_train.shape[1:])
 #    policy, value = model(x_train)
 #    print(f'Output Shape: {policy.shape}, {value.shape}')
 #    print(value)
