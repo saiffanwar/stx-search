@@ -9,26 +9,29 @@ import torch.nn.functional as F
 #from torchsummary import summary
 from explainer import run_explainer
 from tqdm import tqdm
+from multiprocessing import Pool
 
 
 class AlphaZero:
     '''
     Class to run the AlphaZero algorithm
     '''
-    def __init__(self, model, device, explainer):
+    def __init__(self, device, explainer):
         '''
         Args:
             model: nn.Module() object
             device: torch.device() object
             explainer: explainer object needed to make predictions for evaluation explanation fidelity.
         '''
-        self.model = model
         self.device = device
         self.explainer = explainer
+        self.num_workers = 1
+        self.model = PolicyModel(input_window=12, num_nodes=207, feature_dim=1).to(device)
 #        self.mcts = MCTS(self.explainer, self.model)
 
 
-    def self_play(self, ):
+    def self_play(self, worker_num=1):
+        print(f'Starting worker {worker_num}')
         x_train = []
         action_probs_ys = []
         vals_ys = []
@@ -39,15 +42,16 @@ class AlphaZero:
         self.mcts = MCTS(self.explainer, self.model)
         current_node = self.mcts.root
 
-        for i in tqdm(range(3)):
+        for i in tqdm(range(10)):
             action_probs, reward, paths = self.mcts.search(current_node)
 #            [all_paths.append(p) for p in paths]
-            plt.bar(range(len(action_probs)), action_probs)
-            with open('results/probabilities.pck', 'wb') as f:
-                pck.dump(action_probs, f)
+#            plt.bar(range(len(action_probs)), action_probs)
+#            with open('results/probabilities.pck', 'wb') as f:
+#                pck.dump(action_probs, f)
+#                f.close()
             print(np.unique(action_probs, return_counts=True))
-            plt.savefig('results/METR_LA/action_probs.png')
-            plt.close()
+#            plt.savefig(f'results/METR_LA/action_probs_{worker_num}.png')
+#            plt.close()
 
 #            self.mcts.visualise_exp_evolution(all_paths)
 
@@ -62,17 +66,15 @@ class AlphaZero:
             else:
                 current_node = np.random.choice(current_node.children, p=action_probs)
 
-#            current_node = current_node.children[selected_child]
+
+#            print(f'Size of tree: {len(self.mcts.node_ids)}')
 
 
-            print(f'Size of tree: {len(self.mcts.node_ids)}')
+#        with open(f'training_data_worker_{worker_num}.pck', 'wb') as file:
+#            pck.dump([np.array(x_train), np.array(action_probs_ys), np.array(vals_ys)], file)
+#            file.close()
 
-        print(np.array(x_train).shape)
         return np.array(x_train), np.array(action_probs_ys), np.array(vals_ys)
-#            x_train.append(self.mcts.node_to_event_matrix(current_node))
-#            if current_node.expanded == False:
-#                self.mcts.expansion(current_node)
-#            y_train.append([self.mcts.generate_probability_matrix_for_children(current_node), 0])
 
     def train(self, x_train, action_probs_ys, vals_ys, optimizer):
 
@@ -89,14 +91,20 @@ class AlphaZero:
             optimizer.step()
         print(loss)
 
-    def learn(self):
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=0.0001)
-#        optimizer.zero_grad()
-        for epoch in range(100):
-            print(f'Self Play...')
-            x_train, action_probs_ys, vals_ys = self.self_play()
-            print(f'Training...')
-            self.train(x_train, action_probs_ys, vals_ys, optimizer)
+    def test_func(self, w):
+        print(f'Running worker {w}')
+#    def learn(self):
+#        optimizer = torch.optim.Adam(self.model.parameters(), lr=0.0001)
+##        optimizer.zero_grad()
+#        for epoch in range(100):
+#
+#            with Pool(processes=self.num_workers) as pool:
+#                pool.map(self.self_play(), list(range(self.num_workers)))
+#
+#            print(f'Self Play...')
+#            x_train, action_probs_ys, vals_ys = self.self_play()
+#            print(f'Training...')
+#            self.train(x_train, action_probs_ys, vals_ys, optimizer)
 
 
 
@@ -195,34 +203,37 @@ class ResBlock(nn.Module):
 
 
 
+#def load_model(epoch_num):
+#    with open(f'saved/models/policy_model_{epoch_num}', 'rb')
+
 
 results_dir = 'results/METR_LA/'
 
-def main():
-#
+if __name__ == '__main__':
+
     print(torch.cuda.is_available())  # Should return True if CUDA is available
     print(torch.version.cuda)  # Prints the version of CUDA PyTorch is using
     print(torch.__version__)
     print(torch.backends.cudnn.enabled)  # Checks if cuDNN is enabled (used for faster convolution)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    with open(results_dir+'x_train.pck', 'rb') as f:
-        x_train = pck.load(f)[0]
-    input_window, num_nodes, feature_dim = x_train.shape
-
-    print(f'Original Shape: {x_train.shape}')
-    x_train = x_train.view(1, 1, input_window, feature_dim, num_nodes).to(device)
-#    print(f'Input Shape: {x_train.shape}')
-    model = PolicyModel(input_window=input_window, num_nodes=num_nodes, feature_dim=feature_dim).to(device)
 #    summary(model, input_size=x_train.shape[1:])
-#    policy, value = model(x_train)
-#    print(f'Output Shape: {policy.shape}, {value.shape}')
-#    print(value)
     explainer = run_explainer()
-    alpha_zero = AlphaZero(model, device, explainer)
-#    alpha_zero.mcts.run_mcts()
-    alpha_zero.learn()
+    alpha_zero = AlphaZero(device, explainer)
+#    alpha_zero.learn()
 
-if __name__ == '__main__':
-    main()
+    optimizer = torch.optim.Adam(alpha_zero.model.parameters(), lr=0.0001)
+#        optimizer.zero_grad()
+#    for epoch in range(100):
+
+    with Pool(processes=alpha_zero.num_workers) as pool:
+#        pool.map(alpha_zero.self_play, list(range(alpha_zero.num_workers)), chunksize=1)
+        pool.map(alpha_zero.test_func, list(range(alpha_zero.num_workers)), chunksize=1)
+        pool.close()
+
+#        print(f'Self Play...')
+#        x_train, action_probs_ys, vals_ys = alpha_zero.self_play()
+#        print(f'Training...')
+#        alpha_zero.train(x_train, action_probs_ys, vals_ys, optimizer)
+
 

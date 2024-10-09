@@ -163,8 +163,6 @@ class MCTS:
             self.best_exp = possible_events
             self.best_exp_reward = reward
             exp_subgraph = [self.all_event_graph_nodes[e] for e in self.best_exp]
-            with open(self.results_dir+'best_exp.pck', 'wb') as f:
-                pck.dump(exp_subgraph , f)
         return reward, possible_events
 
 
@@ -223,12 +221,12 @@ class MCTS:
 
                 ax.scatter(xs, ys, s=100, zorder=1, )
 
-        fig.savefig(f'{ self.results_dir }exp_evolution_iter_{len(all_paths)}.png')
-        plt.close()
+#        fig.savefig(f'{ self.results_dir }exp_evolution_iter_{len(all_paths)}.png')
+#        plt.close()
 
     def tree_search_animation(self):
-        with open(self.results_dir+'all_paths.pck', 'rb') as f:
-            all_paths = pck.load(f)
+#        with open(self.results_dir+'all_paths.pck', 'rb') as f:
+#            all_paths = pck.load(f)
 
         fig, ax = plt.subplots(figsize=(10, 10))
         ax.set_xlim(-1, len(all_paths[-1])*1.1)
@@ -403,10 +401,9 @@ class MCTS:
                     self.best_exp = current_node.events
                     self.best_exp_reward = reward
                     exp_subgraph = [self.all_event_graph_nodes[e] for e in self.best_exp]
-                    with open(self.results_dir+'best_exp.pck', 'wb') as f:
-                        pck.dump(exp_subgraph , f)
+#                    with open(self.results_dir+'best_exp.pck', 'wb') as f:
+#                        pck.dump(exp_subgraph , f)
                 ancestors = self.find_all_ancestors(current_node.events)
-            print(len(ancestors))
 #            ancestors = [current_node]
             self.backpropagate(reward, ancestors, iteration=i)
 #            all_paths.append(path)

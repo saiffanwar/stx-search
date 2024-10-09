@@ -1,0 +1,19 @@
+Using backend: pytorch
+Traceback (most recent call last):
+  File "alpha_zero_model.py", line 244, in <module>
+  File "/usr/lib64/python3.8/multiprocessing/pool.py", line 364, in map
+  File "/usr/lib64/python3.8/multiprocessing/pool.py", line 771, in get
+  File "/usr/lib64/python3.8/multiprocessing/pool.py", line 537, in _handle_tasks
+  File "/usr/lib64/python3.8/multiprocessing/connection.py", line 210, in send
+  File "/usr/lib64/python3.8/multiprocessing/reduction.py", line 51, in dumps
+  File "/dcs/pg21/u2188448/.local/lib/python3.8/site-packages/torch/multiprocessing/reductions.py", line 367, in reduce_storage
+  File "/usr/lib64/python3.8/multiprocessing/reduction.py", line 198, in DupFd
+  File "/usr/lib64/python3.8/multiprocessing/resource_sharer.py", line 48, in __init__
+OSError: [Errno 24] Too many open files
+Traceback (most recent call last):
+  File "/usr/lib64/python3.8/multiprocessing/util.py", line 300, in _run_finalizers
+  File "/usr/lib64/python3.8/multiprocessing/util.py", line 224, in __call__
+  File "/usr/lib64/python3.8/multiprocessing/util.py", line 133, in _remove_temp_dir
+  File "/usr/lib64/python3.8/shutil.py", line 714, in rmtree
+  File "/usr/lib64/python3.8/shutil.py", line 712, in rmtree
+OSError: [Errno 24] Too many open files: '/tmp/dcs-tmp.u2188448/pymp-ek3h1p4n'

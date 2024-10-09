@@ -7,7 +7,6 @@ from tqdm import tqdm
 from copy import deepcopy
 from matplotlib import pyplot as plt
 from pprint import pprint
-import seaborn as sns
 import pickle as pck
 
 from libcity.data import get_dataset
@@ -257,8 +256,6 @@ def run_explainer():
 
         elif args.mode == 'visualise':
 
-            with open('results/METR_LA/best_exp.pck', 'rb') as f:
-                exp_subgraph = pck.load(f)
             masked_input, masked_adj_mx = explainer.create_masked_input(exp_subgraph, batch['X'], explainer.adj_mx)
             masked_batch = deepcopy(batch)
             masked_batch['X'] = masked_input # (1, 12, 207, 1)
