@@ -113,13 +113,25 @@ class AlphaZero:
             loss.backward()
             optimizer.step()
 
-        value = list(value.detach().cpu().numpy())
-        value = [v.item() for v in value]
-        vals_y = list(vals_y.detach().cpu().numpy())
-        vals_y = [v.item() for v in vals_y]
-        print(list(zip(value, vals_y)))
-#        print(np.sum(value), np.sum(vals_y))
-        print(policy_loss, value_loss, loss)
+#        value = list(value.detach().cpu().numpy())
+#        value = [v.item() for v in value]
+#        vals_y = list(vals_y.detach().cpu().numpy())
+#        vals_y = [v.item() for v in vals_y]
+#        print(list(zip(value, vals_y)))
+##        print(np.sum(value), np.sum(vals_y))
+#        print(policy_loss, value_loss, loss)
+        with open('results/METR_LA/model_output.pck', 'wb') as f:
+            pck.dump([policy, probs_y, value, vals_y], f)
+            f.close()
+
+        policy = policy.detach().cpu().numpy()
+        probs_y = probs_y.detach().cpu().numpy()
+        value = value.detach().cpu().numpy()
+        vals_y = vals_y.detach().cpu().numpy()
+
+#action_probs = [p*100 for p in action_probs]
+        print(np.unique(policy[0]))
+        print(np.unique(probs_y[0]))
         torch.save(self.model.state_dict(), f'saved/models/policy_model_{round}')
 
 #    def learn(self):
@@ -225,21 +237,23 @@ class PolicyHead(nn.Module):
                   stride=1)
 #        self.ln1 = nn.Linear(input_window*num_nodes*num_hidden, input_window*num_nodes)
         self.bn1 = nn.BatchNorm3d(1)
-        self.reul = nn.ReLU()
+#        self.relu = nn.ReLU()
+        self.leaky_relu = nn.LeakyReLU()
         self.flatten = nn.Flatten()
         self.ln2 = nn.Linear(input_window*num_nodes, input_window*num_nodes)
         self.sfm = nn.Softmax(dim=1)
 
     def forward(self, x):
         x = self.conv1(x)
+        x = self.bn1(x)
         x = self.flatten(x)
 #        x = self.ln1(x)
 #        print(x.shape)
-#        x = self.bn1(x)
-#        x = self.relu(x)
+        x = self.leaky_relu(x)
 #        x = self.flatten(x)
         x = self.ln2(x)
-#        x = self.relu(x)
+        x = self.leaky_relu(x)
+#        print(x.shape)
         x = self.sfm(x)
         return x
 
@@ -254,23 +268,24 @@ class ResBlock(nn.Module):
                                stride=1,
                                padding=(1, 0, 1))
         self.bn1 = nn.BatchNorm3d(num_hidden)
+        self.leaky_relu = nn.LeakyReLU()
         self.relu = nn.ReLU()
-#        self.conv2 = nn.Conv3d(in_channels=num_hidden,
-#                               out_channels=num_hidden,
-#                               kernel_size=(3, 1, 3),
-#                               stride=1,
-#                               padding=(1, 0, 1))
-#        self.bn2 = nn.BatchNorm3d(num_hidden)
+        self.conv2 = nn.Conv3d(in_channels=num_hidden,
+                               out_channels=num_hidden,
+                               kernel_size=(3, 1, 3),
+                               stride=1,
+                               padding=(1, 0, 1))
+        self.bn2 = nn.BatchNorm3d(num_hidden)
 
     def forward(self, x):
         residual = x
         out = self.conv1(x)
         out = self.bn1(out)
-        out = self.relu(out)
-#        out = self.conv2(out)
-#        out = self.bn2(out)
-#        out += residual
-#        out = self.relu(out)
+        out = self.leaky_relu(out)
+        out = self.conv2(out)
+        out = self.bn2(out)
+        out += residual
+        out = self.leaky_relu(out)
         return out
 
 
