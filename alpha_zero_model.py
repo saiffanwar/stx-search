@@ -7,7 +7,7 @@ import os
 
 from torch import nn
 import torch.nn.functional as F
-#from torchsummary import summary
+from torchsummary import summary
 from explainer import run_explainer
 from tqdm import tqdm
 from multiprocessing import Pool
@@ -37,13 +37,13 @@ class AlphaZero:
         self.input_window = 12
         self.num_nodes = 207
         self.feature_dim = 1
-        self.model = PolicyModel(input_window=self.input_window, num_nodes=self.num_nodes, feature_dim=self.feature_dim).to(device)
+        self.model = AlphaZeroModel(input_window=self.input_window, num_nodes=self.num_nodes, feature_dim=self.feature_dim).to(device)
         self.mcts = MCTS(self.explainer, self.model, expansion_protocol = 'single_child')
         self.num_simulations=100
         self.depth = 100
 
 
-    def self_play(self, worker_num=1, epoch=1):
+    def self_play(self, worker_num=1, round=1):
         print(f'Starting worker {worker_num}')
         x_train = []
         action_probs_ys = []
@@ -93,15 +93,17 @@ class AlphaZero:
         if not os.path.exists(results_dir+f'{num_simulations}/'):
             os.makedirs(results_dir+f'{num_simulations}/')
 #        print(results_dir+f'/{num_simulations}/{mcts.selection_policy[0]}training_data_worker_{worker_num}.pck')
-        with open(f'{ results_dir }{num_simulations}/{str(mcts.selection_policy[0])[-1]}training_data_worker_{worker_num}.pck', 'wb') as file:
+        with open(f'{ results_dir }{num_simulations}/{str(mcts.selection_policy[0])[-1]}training_data_worker_{worker_num}_{round}.pck', 'wb') as file:
             pck.dump([np.array(x_train), np.array(action_probs_ys), np.array(vals_ys)], file)
 
         return np.array(x_train), np.array(action_probs_ys), np.array(vals_ys)
 
-    def train(self, x_train, action_probs_ys, vals_ys, optimizer):
+    def train(self, x_train, action_probs_ys, vals_ys, optimizer, round):
 
         x_train = self.mcts.event_matrix_to_model_input(x_train)
         probs_y, vals_y = self.mcts.prob_val_to_model_output(action_probs_ys, vals_ys)
+
+        print(x_train.shape, action_probs_y.shape, vals_y.shape)
 
         for i in tqdm(range(100)):
             policy, value = self.model(x_train)
@@ -110,7 +112,15 @@ class AlphaZero:
             loss = policy_loss + value_loss
             loss.backward()
             optimizer.step()
+
+        value = list(value.detach().cpu().numpy())
+        value = [v.item() for v in value]
+        vals_y = list(vals_y.detach().cpu().numpy())
+        vals_y = [v.item() for v in vals_y]
+        print(list(zip(value, vals_y)))
+#        print(np.sum(value), np.sum(vals_y))
         print(policy_loss, value_loss, loss)
+        torch.save(self.model.state_dict(), f'saved/models/policy_model_{round}')
 
 #    def learn(self):
 #        optimizer = torch.optim.Adam(self.model.parameters(), lr=0.0001)
@@ -126,32 +136,36 @@ class AlphaZero:
 #            self.train(x_train, action_probs_ys, vals_ys, optimizer)
 
 
-    def combine_training_data(epoch):
+    def combine_training_data(self, round):
 
         all_x_train = []
         all_y_probs = []
         all_vals_y = []
-        for w in range(num_workers):
-            with open(f'{ results_dir }{self.num_simulations}/{str(self.mcts.selection_policy[0])[-1]}training_data_worker_{worker_num}_{epoch}.pck', 'rb') as file:
-                x_train, aciton_probs_y, vals_y = pck.load(file)
+        for w in range(self.num_workers):
+#            with open(f'{ results_dir }{self.num_simulations}/{str(self.mcts.selection_policy[0])[-1]}training_data_worker_{w}_{round}.pck', 'rb') as file:
+            with open(f'{ results_dir }{self.num_simulations}/{str(5)}training_data_worker_{w}.pck', 'rb') as file:
+                x_train, action_probs_y, vals_y = pck.load(file)
             [all_x_train.append(x) for x in x_train]
-            [all_y_probs.append(p) for p in actions_probs_y]
+            [all_y_probs.append(p) for p in action_probs_y]
             [all_vals_y.append(v) for v in vals_y]
 
-        return all_x_train, all_y_probs, all_vals_y
+            with open(f'{ results_dir }{self.num_simulations}/all_{str(self.mcts.selection_policy[0])[-1]}training_data_round_{round}.pck', 'wb') as file:
+                pck.dump([np.array(all_x_train), np.array(all_y_probs), np.array(all_vals_y)], file)
+
+        return np.array(all_x_train), np.array(all_y_probs), np.array(all_vals_y)
 
 
 
 
 
-class PolicyModel(nn.Module):
+class AlphaZeroModel(nn.Module):
     def __init__(self, input_window, num_nodes, feature_dim):
         super().__init__()
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.input_window = input_window
         self.num_nodes = num_nodes
         self.feature_dim = feature_dim
-        self.num_hidden = 16
+        self.num_hidden = 32
 
         self.startBlock = nn.Sequential(
             nn.Conv3d(in_channels=1,
@@ -165,44 +179,69 @@ class PolicyModel(nn.Module):
 
         self.resBlock1 = ResBlock(self.num_hidden)
         self.resBlock2 = ResBlock(self.num_hidden)
-#        self.resBlock3 = ResBlock(self.num_hidden)
+        self.resBlock3 = ResBlock(self.num_hidden)
 #        self.resBlock4 = ResBlock(self.num_hidden)
 
-        self.policyHead = nn.Sequential(
-            nn.Conv3d(in_channels=self.num_hidden,
-                      out_channels=1,
-                      kernel_size=(1, 1, 1),
-                      stride=1),
-            nn.BatchNorm3d(1),
-            nn.ReLU(),
-            nn.Flatten(),
-            nn.Linear(self.input_window*self.num_nodes, self.input_window*self.num_nodes),
-            nn.ReLU(),
-            nn.Softmax(dim=1)
-#            nn.Unflatten(1, (self.input_window, self.num_nodes, 1))
-        )
-
-        self.valueHead = nn.Sequential(
-            nn.Conv3d(in_channels=self.num_hidden,
-                      out_channels=1,
-                      kernel_size=(1, 1, 1),
-                      stride=1),
-            nn.BatchNorm3d(1),
-            nn.ReLU(),
-            nn.Flatten(),
-            nn.Linear(self.input_window*self.num_nodes, 1),
-            nn.ReLU(),
-        )
+        self.policyHead = PolicyHead(self.input_window, self.num_nodes, self.num_hidden)
+        self.valueHead = ValueHead(self.input_window, self.num_nodes, self.num_hidden)
 
     def forward(self, x):
         x = self.startBlock(x)
         x = self.resBlock1(x)
         x = self.resBlock2(x)
-#        x = self.resBlock3(x)
+        x = self.resBlock3(x)
 #        x = self.resBlock4(x)
         policy = self.policyHead(x)
         value = self.valueHead(x)
         return policy, value
+
+
+class ValueHead(nn.Module):
+    def __init__(self, input_window, num_nodes, num_hidden):
+        super().__init__()
+        self.conv1 = nn.Conv3d(in_channels=num_hidden,
+                  out_channels=1,
+                  kernel_size=(1, 1, 1),
+                  stride=1)
+        self.bn1 = nn.BatchNorm3d(1)
+        self.relu = nn.ReLU()
+        self.flatten = nn.Flatten()
+        self.ln = nn.Linear(input_window*num_nodes, 1)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.flatten(x)
+        x = self.ln(x)
+        return x
+
+class PolicyHead(nn.Module):
+    def __init__(self, input_window, num_nodes, num_hidden):
+        super().__init__()
+        self.conv1 = nn.Conv3d(in_channels=num_hidden,
+                  out_channels=1,
+                  kernel_size=(1, 1, 1),
+                  stride=1)
+#        self.ln1 = nn.Linear(input_window*num_nodes*num_hidden, input_window*num_nodes)
+        self.bn1 = nn.BatchNorm3d(1)
+        self.reul = nn.ReLU()
+        self.flatten = nn.Flatten()
+        self.ln2 = nn.Linear(input_window*num_nodes, input_window*num_nodes)
+        self.sfm = nn.Softmax(dim=1)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.flatten(x)
+#        x = self.ln1(x)
+#        print(x.shape)
+#        x = self.bn1(x)
+#        x = self.relu(x)
+#        x = self.flatten(x)
+        x = self.ln2(x)
+#        x = self.relu(x)
+        x = self.sfm(x)
+        return x
 
 
 
@@ -216,22 +255,22 @@ class ResBlock(nn.Module):
                                padding=(1, 0, 1))
         self.bn1 = nn.BatchNorm3d(num_hidden)
         self.relu = nn.ReLU()
-        self.conv2 = nn.Conv3d(in_channels=num_hidden,
-                               out_channels=num_hidden,
-                               kernel_size=(3, 1, 3),
-                               stride=1,
-                               padding=(1, 0, 1))
-        self.bn2 = nn.BatchNorm3d(num_hidden)
+#        self.conv2 = nn.Conv3d(in_channels=num_hidden,
+#                               out_channels=num_hidden,
+#                               kernel_size=(3, 1, 3),
+#                               stride=1,
+#                               padding=(1, 0, 1))
+#        self.bn2 = nn.BatchNorm3d(num_hidden)
 
     def forward(self, x):
         residual = x
         out = self.conv1(x)
         out = self.bn1(out)
         out = self.relu(out)
-        out = self.conv2(out)
-        out = self.bn2(out)
-        out += residual
-        out = self.relu(out)
+#        out = self.conv2(out)
+#        out = self.bn2(out)
+#        out += residual
+#        out = self.relu(out)
         return out
 
 
@@ -250,24 +289,25 @@ if __name__ == '__main__':
     print(torch.backends.cudnn.enabled)  # Checks if cuDNN is enabled (used for faster convolution)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-#    summary(model, input_size=x_train.shape[1:])
     explainer = run_explainer()
     alpha_zero = AlphaZero(device, explainer)
 #    alpha_zero.learn()
 
-    optimizer = torch.optim.Adam(alpha_zero.model.parameters(), lr=0.0001)
+    optimizer = torch.optim.Adam(alpha_zero.model.parameters(), lr=0.001)
 #        optimizer.zero_grad()
 #    with Pool(5) as p:
 #        p.map(alpha_zero.self_play, [1])
 
-    for epoch in range(100):
-        with concurrent.futures.ProcessPoolExecutor(max_workers=alpha_zero.num_workers, mp_context=mp.get_context("spawn")) as executor:
-            futures = [executor.submit(alpha_zero.self_play, i, epoch) for i in range(alpha_zero.num_workers)]
-            results = [future.result() for future in concurrent.futures.as_completed(futures)]
-
-
-        x_train, action_probs_y, vals_y = alpha_zero.combine_training_data(epoch)
-        alpha_zero.train(x_train, action_probs_ys, vals_ys, optimizer)
+    for round in range(100):
+#        with concurrent.futures.ProcessPoolExecutor(max_workers=alpha_zero.num_workers, mp_context=mp.get_context("spawn")) as executor:
+#            futures = [executor.submit(alpha_zero.self_play, i, epoch) for i in range(alpha_zero.num_workers)]
+#            results = [future.result() for future in concurrent.futures.as_completed(futures)]
+#
+#
+        x_train, action_probs_y, vals_y = alpha_zero.combine_training_data(round)
+#        summary(alpha_zero.model, input_size=(1, 12, 1, 207))
+        print(x_train.shape, action_probs_y.shape, vals_y.shape)
+        alpha_zero.train(x_train, action_probs_y, vals_y, optimizer, round)
 #    for epoch in range(100):
 #
 #        print(f'Self Play...')

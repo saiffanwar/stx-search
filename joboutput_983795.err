@@ -440,3 +440,4 @@ Using backend: pytorch
   @custom_fwd(cast_inputs=th.float16)
 /dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:301: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
   def backward(ctx, dy):
+slurmstepd: error: *** JOB 983795 ON gecko-02 CANCELLED AT 2024-10-10T11:56:06 ***

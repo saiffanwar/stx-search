@@ -405,7 +405,13 @@ class MCTS:
                     ancestors = self.find_all_ancestors(possible_events)
 #            ancestors = self.find_all_ancestors(exp_events)
             else:
-                exp_events = [self.all_event_graph_nodes[e] fo
+                exp_events = [self.all_event_graph_nodes[e] for e in current_node.events]
+                reward = self.explainer.exp_fidelity(exp_events)
+                if reward < self.best_exp_reward:
+                    self.best_exp = current_node.events
+                    self.best_exp_reward = reward
+                    exp_subgraph = [self.all_event_graph_nodes[e] for e in self.best_exp]
+#                    with open(self.results_dir+'best_exp.pck', 'wb') as f:
 #                        pck.dump(exp_subgraph , f)
                 ancestors = self.find_all_ancestors(current_node.events)
 #            ancestors = [current_node]
