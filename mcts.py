@@ -34,10 +34,11 @@ class treeNode:
         self.node_id = np.random.randint(0, 1000000)
         self.prior = prior.cpu().detach().numpy() if isinstance(prior, torch.Tensor) else prior
         self.last_updated = None
+        self.taken_actions = []
 
 class MCTS:
 
-    def  __init__(self, explainer, model, exp_size=100):
+    def  __init__(self, explainer, model, exp_size=100, expansion_protocol='all_children'):
         '''
         Args:
             candidate_events: list of graphNode() objects that are possible candidates for the explanation subset
@@ -59,7 +60,8 @@ class MCTS:
         self.root = treeNode(events=self.all_event_indices)
         self.leaves.append(self.root)
         self.node_ids.append(self.root.node_id)
-        self.expansion_protocol = 'single_child'
+        self.expansion_protocol = expansion_protocol
+        self.selection_policy=[0.3, 0.7]
 
     def uct(self, tree_node, c=0.4):
         '''
@@ -78,7 +80,7 @@ class MCTS:
 #        print('Selection...')
         # If we only expand a single child at a time, sometimes we force to exploit rather than expand a new child.
         if self.expansion_protocol == 'single_child':
-            explore = np.random.choice([True, False], p=[0.5, 0.5])
+            explore = np.random.choice([True, False], p=self.selection_policy)
         else:
             explore = False
         if explore:
@@ -110,6 +112,7 @@ class MCTS:
 #            policy = np.ones(len(self.all_event_indices))
 
         if self.expansion_protocol == 'single_child':
+
             masked_policy = policy.copy()
             state_events = tree_node.events.copy()
             for i in range(len(self.all_event_indices)):
@@ -118,8 +121,14 @@ class MCTS:
 
 #        masked_policy_norm = masked_policy / np.sum(masked_policy)
             policy_as_probs = softmax(masked_policy)
-            action = np.random.choice(range(len(masked_policy)), p=policy_as_probs)
-            new_child_events = [e for e in state_events if e != action]
+            available_actions = list(set(tree_node.events) - set(tree_node.taken_actions))
+            action = None
+            while action not in available_actions:
+                action = np.random.choice(range(len(masked_policy)), p=policy_as_probs)
+
+            tree_node.taken_actions.append(action)
+
+            new_child_events = [e for e in tree_node.events if e != action]
             new_child = treeNode(events=new_child_events, children=[], parent=tree_node, prior=masked_policy[action])
 
             # If it is the first expansion, remove the parent from the leaves list.
@@ -314,6 +323,7 @@ class MCTS:
         action_probabilities = action_probabilities.reshape(len(action_probabilities), self.model.num_nodes*self.model.input_window)
         action_probabilities = torch.tensor(action_probabilities, dtype=torch.float32).to(self.model.device)
 
+        values = values.reshape(len(values), 1)
         values = torch.tensor(values, dtype=torch.float32).to(self.model.device)
         return action_probabilities, values
 
@@ -355,8 +365,8 @@ class MCTS:
             What if the current_node is a leaf node, then which action probs do we return?
         '''
         all_paths = []
-        print(f'Starting search with state: {len(state.events)}')
-        for i in tqdm(range(num_searches)):
+#        print(f'Starting search with state: {len(state.events)}')
+        for i in range(num_searches):
             path = []
             current_node = state
 
@@ -395,13 +405,7 @@ class MCTS:
                     ancestors = self.find_all_ancestors(possible_events)
 #            ancestors = self.find_all_ancestors(exp_events)
             else:
-                exp_events = [self.all_event_graph_nodes[e] for e in current_node.events]
-                reward = self.explainer.exp_fidelity(exp_events)
-                if reward < self.best_exp_reward:
-                    self.best_exp = current_node.events
-                    self.best_exp_reward = reward
-                    exp_subgraph = [self.all_event_graph_nodes[e] for e in self.best_exp]
-#                    with open(self.results_dir+'best_exp.pck', 'wb') as f:
+                exp_events = [self.all_event_graph_nodes[e] fo
 #                        pck.dump(exp_subgraph , f)
                 ancestors = self.find_all_ancestors(current_node.events)
 #            ancestors = [current_node]

@@ -78,7 +78,7 @@ class Explainer:
     def load_model(self, model_path, data_feature):
 
         model = get_model(self.config, data_feature)
-        model_state, optimizer_state = torch.load(model_path, map_location=self.device)
+        model_state, optimizer_state = torch.load(model_path, map_location=self.device, weights_only=True)
         model.load_state_dict(model_state)
         model = model.to(self.device)
 

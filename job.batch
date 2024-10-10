@@ -1,15 +1,14 @@
 #!/bin/bash
 #
-#SBATCH --job-name=multicore-cpu # Job name for tracking
-#SBATCH --partition=cpu-batch  # Partition you wish to use (see above for list)
-#SBATCH --cpus-per-task=10     # Number of CPU threads used by your job, set this upto 40 as required.
-#SBATCH --exclusive=mcs        # Exclusive mode, only this job will run
-
-#SBATCH --mem=60000            # 60GB RAM
-#SBATCH --time=04:00:00      # Job time limit set to 2 days (48 hours)
+#SBATCH --job-name=alpha-zero # Job name for tracking
+#SBATCH --partition=gecko     # Partition you wish to use (see above for list)
+#SBATCH --ntasks=20
+#SBATCH --cpus-per-task=1     # Number of CPU threads used by your job
+#SBATCH --gres=gpu:1           # Number of GPUs to use
+#SBATCH --time=2-00:00:00      # Job time limit set to 2 days (48 hours)
 #
 #SBATCH --output=joboutput_%j.out # Standard out from your job
 #SBATCH --error=joboutput_%j.err  # Standard error from your job
 
-## Execute your program(s) ##
-python3.8 alpha_zero_model.py
+cd my-libcity/
+python3.9 alpha_zero_model.py

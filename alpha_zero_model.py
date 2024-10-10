@@ -3,6 +3,7 @@ from mcts import MCTS
 import pickle as pck
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 from torch import nn
 import torch.nn.functional as F
@@ -10,7 +11,14 @@ import torch.nn.functional as F
 from explainer import run_explainer
 from tqdm import tqdm
 from multiprocessing import Pool
+import multiprocessing as mp
+import concurrent.futures
 
+
+import warnings
+warnings.filterwarnings("ignore")
+
+results_dir = 'results/METR_LA/'
 
 class AlphaZero:
     '''
@@ -25,12 +33,17 @@ class AlphaZero:
         '''
         self.device = device
         self.explainer = explainer
-        self.num_workers = 1
-        self.model = PolicyModel(input_window=12, num_nodes=207, feature_dim=1).to(device)
-#        self.mcts = MCTS(self.explainer, self.model)
+        self.num_workers = 20
+        self.input_window = 12
+        self.num_nodes = 207
+        self.feature_dim = 1
+        self.model = PolicyModel(input_window=self.input_window, num_nodes=self.num_nodes, feature_dim=self.feature_dim).to(device)
+        self.mcts = MCTS(self.explainer, self.model, expansion_protocol = 'single_child')
+        self.num_simulations=100
+        self.depth = 100
 
 
-    def self_play(self, worker_num=1):
+    def self_play(self, worker_num=1, epoch=1):
         print(f'Starting worker {worker_num}')
         x_train = []
         action_probs_ys = []
@@ -39,47 +52,55 @@ class AlphaZero:
         all_paths = []
 
         # Resest the tree before self play. avoids magnifying random biases
-        self.mcts = MCTS(self.explainer, self.model)
-        current_node = self.mcts.root
+        mcts = MCTS(self.explainer, self.model, expansion_protocol='single_child')
+        current_node = mcts.root
 
-        for i in tqdm(range(10)):
-            action_probs, reward, paths = self.mcts.search(current_node)
+
+        for i in range(depth):
+            print(f'Worker {worker_num} on round {i}')
+            action_probs, reward, paths = mcts.search(current_node, num_simulations)
 #            [all_paths.append(p) for p in paths]
 #            plt.bar(range(len(action_probs)), action_probs)
 #            with open('results/probabilities.pck', 'wb') as f:
 #                pck.dump(action_probs, f)
 #                f.close()
-            print(np.unique(action_probs, return_counts=True))
 #            plt.savefig(f'results/METR_LA/action_probs_{worker_num}.png')
 #            plt.close()
 
-#            self.mcts.visualise_exp_evolution(all_paths)
+#            mcts.visualise_exp_evolution(all_paths)
+            x_train.append(mcts.node_to_event_matrix(current_node))
 
-            x_train.append(self.mcts.node_to_event_matrix(current_node))
+#            action_probs = mcts.generate_probability_matrix_for_children(current_node)
+
             action_probs_ys.append(action_probs)
             vals_ys.append(reward)
+            action = None
+            while action not in current_node.taken_actions:
+                action = np.random.choice(range(len(action_probs)), p=action_probs)
+            current_node = current_node.children[current_node.taken_actions.index(action)]
+
 
             # Select the next node based on the action probabilities
 #            selected_child = np.random.choice(list(range(len(action_probs))), p=action_probs)
-            if self.mcts.expansion_protocol == 'single_child':
-                current_node = self.mcts.expansion(current_node, action_probs)
-            else:
-                current_node = np.random.choice(current_node.children, p=action_probs)
+#            if mcts.expansion_protocol == 'single_child':
+#                current_node = mcts.expansion(current_node, action_probs)
+#            else:
+#                current_node = np.random.choice(current_node.children, p=action_probs)
 
 
 #            print(f'Size of tree: {len(self.mcts.node_ids)}')
 
-
-#        with open(f'training_data_worker_{worker_num}.pck', 'wb') as file:
-#            pck.dump([np.array(x_train), np.array(action_probs_ys), np.array(vals_ys)], file)
-#            file.close()
+        if not os.path.exists(results_dir+f'{num_simulations}/'):
+            os.makedirs(results_dir+f'{num_simulations}/')
+#        print(results_dir+f'/{num_simulations}/{mcts.selection_policy[0]}training_data_worker_{worker_num}.pck')
+        with open(f'{ results_dir }{num_simulations}/{str(mcts.selection_policy[0])[-1]}training_data_worker_{worker_num}.pck', 'wb') as file:
+            pck.dump([np.array(x_train), np.array(action_probs_ys), np.array(vals_ys)], file)
 
         return np.array(x_train), np.array(action_probs_ys), np.array(vals_ys)
 
     def train(self, x_train, action_probs_ys, vals_ys, optimizer):
 
         x_train = self.mcts.event_matrix_to_model_input(x_train)
-        print(x_train.shape)
         probs_y, vals_y = self.mcts.prob_val_to_model_output(action_probs_ys, vals_ys)
 
         for i in tqdm(range(100)):
@@ -89,10 +110,8 @@ class AlphaZero:
             loss = policy_loss + value_loss
             loss.backward()
             optimizer.step()
-        print(loss)
+        print(policy_loss, value_loss, loss)
 
-    def test_func(self, w):
-        print(f'Running worker {w}')
 #    def learn(self):
 #        optimizer = torch.optim.Adam(self.model.parameters(), lr=0.0001)
 ##        optimizer.zero_grad()
@@ -106,6 +125,20 @@ class AlphaZero:
 #            print(f'Training...')
 #            self.train(x_train, action_probs_ys, vals_ys, optimizer)
 
+
+    def combine_training_data(epoch):
+
+        all_x_train = []
+        all_y_probs = []
+        all_vals_y = []
+        for w in range(num_workers):
+            with open(f'{ results_dir }{self.num_simulations}/{str(self.mcts.selection_policy[0])[-1]}training_data_worker_{worker_num}_{epoch}.pck', 'rb') as file:
+                x_train, aciton_probs_y, vals_y = pck.load(file)
+            [all_x_train.append(x) for x in x_train]
+            [all_y_probs.append(p) for p in actions_probs_y]
+            [all_vals_y.append(v) for v in vals_y]
+
+        return all_x_train, all_y_probs, all_vals_y
 
 
 
@@ -203,11 +236,11 @@ class ResBlock(nn.Module):
 
 
 
+
 #def load_model(epoch_num):
 #    with open(f'saved/models/policy_model_{epoch_num}', 'rb')
 
 
-results_dir = 'results/METR_LA/'
 
 if __name__ == '__main__':
 
@@ -224,16 +257,21 @@ if __name__ == '__main__':
 
     optimizer = torch.optim.Adam(alpha_zero.model.parameters(), lr=0.0001)
 #        optimizer.zero_grad()
+#    with Pool(5) as p:
+#        p.map(alpha_zero.self_play, [1])
+
+    for epoch in range(100):
+        with concurrent.futures.ProcessPoolExecutor(max_workers=alpha_zero.num_workers, mp_context=mp.get_context("spawn")) as executor:
+            futures = [executor.submit(alpha_zero.self_play, i, epoch) for i in range(alpha_zero.num_workers)]
+            results = [future.result() for future in concurrent.futures.as_completed(futures)]
+
+
+        x_train, action_probs_y, vals_y = alpha_zero.combine_training_data(epoch)
+        alpha_zero.train(x_train, action_probs_ys, vals_ys, optimizer)
 #    for epoch in range(100):
-
-    with Pool(processes=alpha_zero.num_workers) as pool:
-#        pool.map(alpha_zero.self_play, list(range(alpha_zero.num_workers)), chunksize=1)
-        pool.map(alpha_zero.test_func, list(range(alpha_zero.num_workers)), chunksize=1)
-        pool.close()
-
+#
 #        print(f'Self Play...')
 #        x_train, action_probs_ys, vals_ys = alpha_zero.self_play()
 #        print(f'Training...')
-#        alpha_zero.train(x_train, action_probs_ys, vals_ys, optimizer)
 
 

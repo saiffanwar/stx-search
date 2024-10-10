@@ -1,0 +1,442 @@
+/var/spool/slurmd/job983795/slurm_script: line 13: cd: my-libcity/: No such file or directory
+Using backend: pytorch
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:85: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:94: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:147: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:156: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:208: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:239: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, grad_out):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:264: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:273: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:293: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:301: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+Using backend: pytorch
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:85: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:94: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:147: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:156: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:208: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:239: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, grad_out):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:264: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:273: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:293: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:301: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+Using backend: pytorch
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:85: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:94: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:147: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:156: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:208: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:239: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, grad_out):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:264: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:273: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:293: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:301: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+Using backend: pytorch
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:85: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:94: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:147: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:156: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:208: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:239: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, grad_out):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:264: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:273: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:293: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:301: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+Using backend: pytorch
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:85: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:94: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:147: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:156: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:208: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:239: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, grad_out):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:264: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:273: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:293: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:301: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+Using backend: pytorch
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:85: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:94: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:147: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:156: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:208: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:239: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, grad_out):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:264: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:273: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:293: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:301: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+Using backend: pytorch
+Using backend: pytorch
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:85: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:94: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:85: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:147: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:94: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:156: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:208: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:147: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:239: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, grad_out):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:156: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:264: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:208: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:273: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:239: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, grad_out):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:293: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:301: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:264: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:273: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:293: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:301: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+Using backend: pytorch
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:85: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:94: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:147: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:156: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:208: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:239: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, grad_out):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:264: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:273: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:293: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:301: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+Using backend: pytorch
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:85: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:94: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:147: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:156: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:208: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:239: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, grad_out):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:264: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:273: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:293: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:301: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+Using backend: pytorch
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:85: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:94: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:147: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:156: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:208: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:239: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, grad_out):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:264: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:273: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:293: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:301: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+Using backend: pytorch
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:85: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:94: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:147: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:156: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:208: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:239: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, grad_out):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:264: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:273: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:293: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:301: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+Using backend: pytorch
+Using backend: pytorch
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:85: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:94: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:147: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:156: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:208: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:239: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, grad_out):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:264: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:273: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:293: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:301: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:85: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:94: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:147: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:156: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:208: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:239: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, grad_out):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:264: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:273: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:293: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:301: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+Using backend: pytorch
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:85: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:94: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:147: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:156: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:208: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:239: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, grad_out):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:264: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:273: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:293: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:301: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+Using backend: pytorch
+Using backend: pytorch
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:85: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:94: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:147: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:156: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:208: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:239: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, grad_out):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:264: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:273: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:293: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:301: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:85: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:94: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:147: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:156: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:208: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:239: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, grad_out):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:264: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:273: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:293: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:301: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+Using backend: pytorch
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:85: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:94: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:147: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:156: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:208: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:239: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, grad_out):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:264: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:273: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:293: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:301: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+Using backend: pytorch
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:85: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:94: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:147: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:156: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:208: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:239: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, grad_out):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:264: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:273: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:293: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:301: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+Using backend: pytorch
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:85: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:94: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:147: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:156: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:208: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:239: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, grad_out):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:264: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:273: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:293: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:301: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+Using backend: pytorch
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:85: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:94: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:147: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:156: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dZ):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:208: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:239: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, grad_out):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:264: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:273: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:293: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @custom_fwd(cast_inputs=th.float16)
+/dcs/pg21/u2188448/.local/lib/python3.9/site-packages/dgl/backend/pytorch/sparse.py:301: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, dy):
