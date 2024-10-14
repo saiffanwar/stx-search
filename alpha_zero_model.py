@@ -33,14 +33,14 @@ class AlphaZero:
         '''
         self.device = device
         self.explainer = explainer
-        self.num_workers = 20
+        self.num_workers = 10
         self.input_window = 12
         self.num_nodes = 207
         self.feature_dim = 1
         self.model = AlphaZeroModel(input_window=self.input_window, num_nodes=self.num_nodes, feature_dim=self.feature_dim).to(device)
         self.mcts = MCTS(self.explainer, self.model, expansion_protocol = 'single_child')
-        self.num_simulations=100
-        self.depth = 100
+        self.num_simulations=5000
+        self.depth = 1
 
 
     def self_play(self, worker_num=1, round=1):
@@ -56,10 +56,10 @@ class AlphaZero:
         current_node = mcts.root
 
 
-        for i in range(depth):
-            print(f'Worker {worker_num} on round {i}')
-            action_probs, reward, paths = mcts.search(current_node, num_simulations)
-#            [all_paths.append(p) for p in paths]
+        for i in range(self.depth):
+            print(f'Worker {worker_num} on depth {i}')
+            action_probs, reward, paths = mcts.search(current_node, self.num_simulations)
+            [all_paths.append(p) for p in paths]
 #            plt.bar(range(len(action_probs)), action_probs)
 #            with open('results/probabilities.pck', 'wb') as f:
 #                pck.dump(action_probs, f)
@@ -90,11 +90,13 @@ class AlphaZero:
 
 #            print(f'Size of tree: {len(self.mcts.node_ids)}')
 
-        if not os.path.exists(results_dir+f'{num_simulations}/'):
-            os.makedirs(results_dir+f'{num_simulations}/')
+        print(f'{ results_dir }{self.num_simulations}/{str(mcts.selection_policy[0])[-1]}training_data_worker_{worker_num}_{round}.pck', 'wb')
+
+        if not os.path.exists(results_dir+f'{self.num_simulations}/'):
+            os.makedirs(results_dir+f'{self.num_simulations}/')
 #        print(results_dir+f'/{num_simulations}/{mcts.selection_policy[0]}training_data_worker_{worker_num}.pck')
-        with open(f'{ results_dir }{num_simulations}/{str(mcts.selection_policy[0])[-1]}training_data_worker_{worker_num}_{round}.pck', 'wb') as file:
-            pck.dump([np.array(x_train), np.array(action_probs_ys), np.array(vals_ys)], file)
+        with open(f'{ results_dir }{self.num_simulations}/{str(mcts.selection_policy[0])[-1]}training_data_worker_{worker_num}_{round}.pck', 'wb') as file:
+            pck.dump([np.array(x_train), np.array(action_probs_ys), np.array(vals_ys), all_paths], file)
 
         return np.array(x_train), np.array(action_probs_ys), np.array(vals_ys)
 
@@ -102,14 +104,15 @@ class AlphaZero:
 
         x_train = self.mcts.event_matrix_to_model_input(x_train)
         probs_y, vals_y = self.mcts.prob_val_to_model_output(action_probs_ys, vals_ys)
+        print(probs_y.shape, vals_y.shape)
 
-        print(x_train.shape, action_probs_y.shape, vals_y.shape)
 
-        for i in tqdm(range(100)):
+        for i in tqdm(range(1000)):
             policy, value = self.model(x_train)
             policy_loss = F.cross_entropy(policy, probs_y)
             value_loss = F.mse_loss(value, vals_y)
             loss = policy_loss + value_loss
+            optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
@@ -119,19 +122,20 @@ class AlphaZero:
 #        vals_y = [v.item() for v in vals_y]
 #        print(list(zip(value, vals_y)))
 ##        print(np.sum(value), np.sum(vals_y))
-#        print(policy_loss, value_loss, loss)
+
+            print(probs_y)
+            print(policy)
         with open('results/METR_LA/model_output.pck', 'wb') as f:
             pck.dump([policy, probs_y, value, vals_y], f)
-            f.close()
 
+        print(policy_loss, value_loss, loss)
         policy = policy.detach().cpu().numpy()
         probs_y = probs_y.detach().cpu().numpy()
         value = value.detach().cpu().numpy()
         vals_y = vals_y.detach().cpu().numpy()
 
+        print(np.unique(policy))
 #action_probs = [p*100 for p in action_probs]
-        print(np.unique(policy[0]))
-        print(np.unique(probs_y[0]))
         torch.save(self.model.state_dict(), f'saved/models/policy_model_{round}')
 
 #    def learn(self):
@@ -155,8 +159,9 @@ class AlphaZero:
         all_vals_y = []
         for w in range(self.num_workers):
 #            with open(f'{ results_dir }{self.num_simulations}/{str(self.mcts.selection_policy[0])[-1]}training_data_worker_{w}_{round}.pck', 'rb') as file:
-            with open(f'{ results_dir }{self.num_simulations}/{str(5)}training_data_worker_{w}.pck', 'rb') as file:
-                x_train, action_probs_y, vals_y = pck.load(file)
+            with open(f'{ results_dir }{self.num_simulations}/{str(self.mcts.selection_policy[0])[-1]}training_data_worker_{w}_{round}.pck', 'rb') as file:
+#                data = pck.load(file)
+                x_train, action_probs_y, vals_y, all_paths = pck.load(file)
             [all_x_train.append(x) for x in x_train]
             [all_y_probs.append(p) for p in action_probs_y]
             [all_vals_y.append(v) for v in vals_y]
@@ -241,8 +246,8 @@ class PolicyHead(nn.Module):
         self.leaky_relu = nn.LeakyReLU()
         self.flatten = nn.Flatten()
         self.ln2 = nn.Linear(input_window*num_nodes, input_window*num_nodes)
-        self.sfm = nn.Softmax(dim=1)
-
+#        self.sfm = nn.Softmax(dim=1)
+#
     def forward(self, x):
         x = self.conv1(x)
         x = self.bn1(x)
@@ -295,34 +300,35 @@ class ResBlock(nn.Module):
 #    with open(f'saved/models/policy_model_{epoch_num}', 'rb')
 
 
-
 if __name__ == '__main__':
+        print(torch.cuda.is_available())  # Should return True if CUDA is available
+        print(torch.version.cuda)  # Prints the version of CUDA PyTorch is using
+        print(torch.__version__)
+        print(torch.backends.cudnn.enabled)  # Checks if cuDNN is enabled (used for faster convolution)
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    print(torch.cuda.is_available())  # Should return True if CUDA is available
-    print(torch.version.cuda)  # Prints the version of CUDA PyTorch is using
-    print(torch.__version__)
-    print(torch.backends.cudnn.enabled)  # Checks if cuDNN is enabled (used for faster convolution)
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-    explainer = run_explainer()
-    alpha_zero = AlphaZero(device, explainer)
+        explainer = run_explainer()
+        alpha_zero = AlphaZero(device, explainer)
 #    alpha_zero.learn()
 
-    optimizer = torch.optim.Adam(alpha_zero.model.parameters(), lr=0.001)
+        optimizer = torch.optim.Adam(alpha_zero.model.parameters(), lr=0.00001)
 #        optimizer.zero_grad()
 #    with Pool(5) as p:
 #        p.map(alpha_zero.self_play, [1])
 
-    for round in range(100):
-#        with concurrent.futures.ProcessPoolExecutor(max_workers=alpha_zero.num_workers, mp_context=mp.get_context("spawn")) as executor:
-#            futures = [executor.submit(alpha_zero.self_play, i, epoch) for i in range(alpha_zero.num_workers)]
-#            results = [future.result() for future in concurrent.futures.as_completed(futures)]
+        for round in range(100):
+#            alpha_zero.model.eval()
+#            with concurrent.futures.ProcessPoolExecutor(max_workers=alpha_zero.num_workers, mp_context=mp.get_context("spawn")) as executor:
+#                futures = [executor.submit(alpha_zero.self_play, i, round) for i in range(alpha_zero.num_workers)]
+#                results = [future.result() for future in concurrent.futures.as_completed(futures)]
+##
+#            torch.cuda.empty_cache()
+
 #
-#
-        x_train, action_probs_y, vals_y = alpha_zero.combine_training_data(round)
+            x_train, action_probs_y, vals_y = alpha_zero.combine_training_data(round)
 #        summary(alpha_zero.model, input_size=(1, 12, 1, 207))
-        print(x_train.shape, action_probs_y.shape, vals_y.shape)
-        alpha_zero.train(x_train, action_probs_y, vals_y, optimizer, round)
+            print(x_train.shape, action_probs_y.shape, vals_y.shape)
+            alpha_zero.train(x_train, action_probs_y, vals_y, optimizer, round)
 #    for epoch in range(100):
 #
 #        print(f'Self Play...')

@@ -11,7 +11,7 @@ from scipy.special import softmax
 
 
 unvisited_reward = 0
-np.random.seed(0)
+#np.random.seed(0)
 
 class treeNode:
     def __init__(self, events, children=[], parent=None, prior=0):
@@ -61,7 +61,7 @@ class MCTS:
         self.leaves.append(self.root)
         self.node_ids.append(self.root.node_id)
         self.expansion_protocol = expansion_protocol
-        self.selection_policy=[0.3, 0.7]
+        self.selection_policy=[0.1, 0.9]
 
     def uct(self, tree_node, c=0.4):
         '''
@@ -338,11 +338,12 @@ class MCTS:
             child_score = self.uct(child)
             # Record the score of taking that action in the probability matrix.
             # Actions that don't exist keep a score of 0
-#            probabilities[removed_event_timestamp, removed_event_node_index, :] = child_score
+            probabilities[removed_event_timestamp, removed_event_node_index, :] = child_score
 
-            probabilities[removed_event_timestamp, removed_event_node_index, :] = child.cumulative_reward / child.visits
+#            probabilities[removed_event_timestamp, removed_event_node_index, :] = child.cumulative_reward / child.visits
 
-        probabilities = softmax(probabilities.flatten())
+#        probabilities = softmax(probabilities.flatten())
+        probabilities = probabilities.flatten()
         # Currently a lower score is a more favourable node, so need to inverse this to imply probability.
         # Subtract all values from the max value to inverse the probabilities.
 #        probabilities = [np.max(probabilities) - x if x != 0 else 0 for x in probabilities ]
@@ -356,7 +357,7 @@ class MCTS:
         else:
             return False
 
-    def search(self, state, num_searches=100):
+    def search(self, state, num_searches=1000):
         '''
         Args:
             state: np.array of shape (input_window, num_nodes, feature_dim)
@@ -367,6 +368,8 @@ class MCTS:
         all_paths = []
 #        print(f'Starting search with state: {len(state.events)}')
         for i in range(num_searches):
+            if i % 100 == 0:
+                print(f'Iteration: {i}')
             path = []
             current_node = state
 
@@ -382,7 +385,7 @@ class MCTS:
                 reward = predicted_reward
 #                print(np.unique(policy, return_counts=True))
                 current_node = self.selection(current_node, policy)
-#                path.append(current_node.node_id)
+                path.append(current_node.node_id)
 
 
             # Every 10th iteration, force a real simulated reward to propogate back up the tree.
@@ -402,7 +405,7 @@ class MCTS:
                 if i%10 == 0:
 #                    print('Simulation...')
                     reward, possible_events = self.simulation(current_node)
-                    ancestors = self.find_all_ancestors(possible_events)
+#                    ancestors = self.find_all_ancestors(possible_events)
 #            ancestors = self.find_all_ancestors(exp_events)
             else:
                 exp_events = [self.all_event_graph_nodes[e] for e in current_node.events]
@@ -413,10 +416,10 @@ class MCTS:
                     exp_subgraph = [self.all_event_graph_nodes[e] for e in self.best_exp]
 #                    with open(self.results_dir+'best_exp.pck', 'wb') as f:
 #                        pck.dump(exp_subgraph , f)
-                ancestors = self.find_all_ancestors(current_node.events)
-#            ancestors = [current_node]
+#                ancestors = self.find_all_ancestors(current_node.events)
+            ancestors = [current_node]
             self.backpropagate(reward, ancestors, iteration=i)
-#            all_paths.append(path)
+            all_paths.append(path)
 #            self.visualise_exp_evolution(all_paths)
 #            with open(self.results_dir+'all_paths.pck', 'wb') as f:
 #                pck.dump(all_paths, f)
