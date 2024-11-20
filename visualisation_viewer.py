@@ -149,3 +149,4 @@ def update_map_geo_id(geo_id):
 if __name__ == '__main__':
     app.run_server(debug=True)
 
+    print(len(xs), len(probabilities), len(temps))

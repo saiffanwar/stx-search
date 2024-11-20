@@ -14,12 +14,14 @@ from libcity.utils import get_model
 from libcity.config import ConfigParser
 
 from visualisation_utils import graph_visualiser
-from mcts import MCTS
 import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-m', '--mode', type=str, default='generate', help='Mode of operation: generate or visualise')
+parser.add_argument('-t', '--target_node', type=int, default=0, help='Target node index for explanation')
+parser.add_argument('-s', '--subgraph_size', type=int, default=50, help='Size of the subgraph for explanation')
 args = parser.parse_args()
+
 
 def ncr(n, r):
     f = math.factorial
@@ -51,7 +53,7 @@ class Explainer:
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self.input_window = self.config.get('input_window', 3)
         self.output_window = self.config.get('output_window', 1)
-        self.target_index = 20
+        self.target_index = target_node_index
         self.target_timestamp = 0
 
     def generate_graph_nodes(self, x):
@@ -78,13 +80,13 @@ class Explainer:
     def load_model(self, model_path, data_feature):
 
         model = get_model(self.config, data_feature)
-        model_state, optimizer_state = torch.load(model_path, map_location=self.device, weights_only=True)
+        model_state, optimizer_state = torch.load(model_path, map_location=self.device)
         model.load_state_dict(model_state)
         model = model.to(self.device)
 
         return model
 
-    def calculate_target_error(self, target_node, truth, pred):
+    def calculate_target_error(self, truth, pred):
         '''
         Calculate the absolute error of the target node.
 
@@ -97,8 +99,10 @@ class Explainer:
             error: The absolute error of the target node.
         '''
 
-        truth = self.scaler.inverse_transform(truth.cpu())
-        pred = self.scaler.inverse_transform(pred.cpu())
+#        truth = self.scaler.inverse_transform(truth.cpu())
+#        pred = self.scaler.inverse_transform(pred.cpu())
+        truth = truth.cpu()
+        pred = pred.cpu()
         error = torch.abs(truth[0][self.target_timestamp][self.target_index][0] - pred[0][self.target_timestamp][self.target_index][0])
 
         return error
@@ -157,8 +161,10 @@ class Explainer:
 
         return masked_input, masked_adj_mx
 
+    def model_output_to_target_prediction(self, model_output):
+        return model_output[0][self.target_timestamp][self.target_index][0]
 
-    def exp_fidelity(self, exp_nodes):
+    def exp_fidelity(self, exp_nodes, mode='fidelity'):
         '''
         Calculate the fidelity of the model for a given subgraph. Fidelity is defined using the
         metric proposed in arXiv:2306.05760.
@@ -169,49 +175,97 @@ class Explainer:
         Returns:
             fidelity: The fidelity of the model for the given subgraph.
         '''
-        x = self.batch['X'].cpu()
-        y = self.batch['y'].cpu()
-        adj_mx = self.adj_mx
-        explanation_graph, adj_mx = self.create_masked_input(exp_nodes, x, adj_mx)
 
-        unimportant_nodes = [node for node in np.array(self.all_nodes).flatten() if node not in exp_nodes]
-        non_explanation_graph, adj_mx = self.create_masked_input(unimportant_nodes, x, adj_mx)
+        exp_y, exp_graph = self.make_prediction_from_exp_nodes(exp_nodes)
+
+        target_explanation_y = self.model_output_to_target_prediction(exp_y)
+#        target_explanation_y = target_explanation_y.cpu().detach().numpy()
+        target_explanation_y = self.scaler.inverse_transform(target_explanation_y)
+
+        target_model_y = self.model_output_to_target_prediction( self.model_y )
+        target_model_y = target_model_y.cpu().detach().numpy()
+        target_model_y = self.scaler.inverse_transform(target_model_y)
 
 
-        explanation_y = self.make_prediction_from_masked_input(explanation_graph, self.batch)
+#        max_pred = torch.max(y).item()
+
+#        unimportant_nodes = [node for node in np.array(self.all_nodes).flatten() if node not in exp_nodes]
+#        non_explanation_graph, adj_mx = self.create_masked_input(unimportant_nodes, x, adj_mx)
+#
+#
+#        explanation_y = self.make_prediction_from_masked_input(explanation_graph, self.batch)
 #        self.data_graph_visualisation(batch['X'].cpu(), explanation_graph, self.model_y, explanation_y.cpu(), adj_mx)
-        non_explanation_y = self.make_prediction_from_masked_input(non_explanation_graph, self.batch)
+#        non_explanation_y = self.make_prediction_from_masked_input(non_explanation_graph, self.batch)
+#
+#        explanation_error = self.calculate_target_error(self.target_node, self.model_y, explanation_y)
+#        non_explanation_error = self.calculate_target_error(self.target_node, self.model_y, non_explanation_y)
+#        if lam == None:
+#            lam = 0.2
+##        gam = 1-lam
+#
 
-        explanation_error = self.calculate_target_error(self.target_node, self.model_y, explanation_y)
-        non_explanation_error = self.calculate_target_error(self.target_node, self.model_y, non_explanation_y)
 
-#        return explanation_error
+
+        exp_absolute_error = abs(target_model_y - target_explanation_y)
+        max_exp_size = 500
+        exp_size_percentage = (100*len(exp_nodes)/max_exp_size)
+        exp_percentage_error = 100*(exp_absolute_error/target_model_y)
+
+#        gam = k*exp_error/(exp_error + (1-k)*exp_error)
+#        gam = 1
+#        lam = (exp_error - k*exp_error)/(exp_error + k*exp_error)
+
+
+        if mode == 'fidelity':
+            exp_score = exp_percentage_error
+            return exp_score, exp_graph, exp_absolute_error
+
+        elif mode == 'fidelity+size':
+            lam = 0.1
+            gam = 0.9
+            exp_score = gam*exp_percentage_error + lam*exp_size_percentage
+            return exp_score, gam*exp_percentage_error, lam*exp_size_percentage, exp_graph, exp_absolute_error
+
+        else:
+            RuntimeError('Invalid mode. Choose either fidelity or fidelity+size')
+#        exp_score = exp_error
+#        print(target_model_y, target_explanation_y, target_prediction_error, exp_error)
+#        print(exp_error/target_prediction_error)
+#        absolute_percentage_error = (explanation_error - ) / non_explanation_error
+
+
 #        if (explanation_error - non_explanation_error) == 0:
 #            return np.inf
 #        else:
-        fidelity =  (explanation_error - non_explanation_error).float().detach().numpy()
+#        fidelity =  (explanation_error - non_explanation_error).float().detach().numpy()
 ##        print(explanation_error, non_explanation_error, fidelity)
-        return abs(fidelity)
+#        return abs(fidelity), explanation_graph.detach().cpu().numpy(), explanation_y.detach().cpu().numpy()
 
 
-    def make_prediction_from_masked_input(self, masked_input, batch):
+    def make_prediction_from_exp_nodes(self, exp_nodes):
 
-        masked_batch = deepcopy(batch)
+        x = self.batch['X'].cpu()
+        y = self.batch['y'].cpu()
+
+        adj_mx = self.adj_mx
+        masked_input, adj_mx = self.create_masked_input(exp_nodes, x, adj_mx)
+
+        masked_batch = deepcopy(self.batch)
         masked_batch['X'] = masked_input.cpu() # (1, 12, 207, 1)
 
         masked_batch.to_tensor(self.device)
 #        loss = model.calculate_loss(masked_batch)
         y = self.model.predict(masked_batch) # (1, 12, 207, 1)
 
-        return y
+        return y.cpu().detach().numpy(), masked_input.cpu().detach().numpy()
 
 def batch_to_cpu(batch):
     for key in batch.data:
         batch.data[key] = batch.data[key].to('cpu')
 
-def run_explainer():
+def run_explainer(target_node_index):
 
-    explainer = Explainer(target_node_index=20, target_timestamp=0)
+    explainer = Explainer(target_node_index=target_node_index, target_timestamp=0)
     data_feature, train_data, valid_data, test_data = explainer.load_data()
     explainer.scaler = data_feature['scaler']
 
@@ -248,11 +302,6 @@ def run_explainer():
             subgraph = random.sample(explainer.candidate_events, subgraph_size)
             explainer.batch = batch
             return explainer
-#            mcts = MCTS(explainer)
-
-#            mcts.tree_search_animation()
-#            exp_subgraph = mcts.run_mcts(candidate_events=explainer.candidate_events, batch=batch)
-#            mcts.self_play(candidate_events=explainer.candidate_events)
 
         elif args.mode == 'visualise':
 
@@ -264,8 +313,4 @@ def run_explainer():
             ### Inverse scaling of output to get traffic speed values.
             y_predicted = explainer.scaler.inverse_transform(exp_y[..., :explainer.output_window]) # (1, 12, 207, 1)
             graph_visualiser(explainer, batch['X'].cpu() ,masked_input, explainer.model_y.cpu(), exp_y.cpu(), adj_mx)
-
-
-run_explainer()
-
 

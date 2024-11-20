@@ -1,19 +1,18 @@
-from multiprocessing import Pool, cpu_count
-import time
+import matplotlib.pyplot as plt
+import numpy as np
 
-def my_function(x):
-    # Your computation-intensive function here
-    print(f'Starting worker {x}')
-    time.sleep(30)
-    print(f'Finishing worker {x}')
-    return x * x
 
-if __name__ == "__main__":
-    inputs = [1, 2, 3, 4, 5]  # Example input list
 
-    # Create a pool of workers, using the number of available CPU cores
-    with Pool(processes=cpu_count()) as pool:
-        # Distribute the function across the input data
-        results = pool.map(my_function, inputs)
+fig, ax = plt.subplots(1, 1, figsize=(10, 5))
+xs = np.arange(-10,10,1)
+for temp in [10,20,30,40,50,60,70,80,90,100]:
+    ys = np.exp(-xs/temp)
+#    ys = [1-y for y in ys]
 
-    print(results)
+    ax.plot(xs, ys, label=f'Temperature: {temp}')
+ax.set_xlabel('x')
+ax.set_ylabel('exp(-x/temp)')
+ax.legend()
+plt.show()
+
+
