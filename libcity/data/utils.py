@@ -19,6 +19,7 @@ def get_dataset(config):
     """
     try:
         # Returns the relevant dataset class from the dataset_subclass module.
+        print('Getting dataset: -------', config['dataset_class'])
         return getattr(importlib.import_module('libcity.data.dataset'),
                        config['dataset_class'])(config)
     except AttributeError:

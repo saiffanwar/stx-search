@@ -87,7 +87,7 @@ class TrafficStateDataset(AbstractDataset):
         if os.path.exists(self.data_path + self.rel_file + '.rel'):  # .rel file is not necessary
             self._load_rel()
         else:
-            self.adj_mx = np.zeros((len(self.geo_ids), len(self.geo_ids)), dtype=np.float32)
+            self.adj_mx = np.zeros((len(self.geo_ids), len(self.geo_ids)), dtype=float)
 
     def _load_geo(self):
         """
@@ -162,7 +162,7 @@ class TrafficStateDataset(AbstractDataset):
                 self.distance_df = relfile[~relfile[self.weight_col].isna()][[
                     'origin_id', 'destination_id', self.weight_col]]
         # 把数据转换成矩阵的形式
-        self.adj_mx = np.zeros((len(self.geo_ids), len(self.geo_ids)), dtype=np.float32)
+        self.adj_mx = np.zeros((len(self.geo_ids), len(self.geo_ids)), dtype=float)
         if self.init_weight_inf_or_zero.lower() == 'inf' and self.set_weight_link_or_dist.lower() != 'link':
             self.adj_mx[:] = np.inf
         for row in self.distance_df.values:
@@ -191,7 +191,7 @@ class TrafficStateDataset(AbstractDataset):
         Returns:
             np.ndarray: self.adj_mx, N*N的邻接矩阵
         """
-        self.adj_mx = np.zeros((len(self.geo_ids), len(self.geo_ids)), dtype=np.float32)
+        self.adj_mx = np.zeros((len(self.geo_ids), len(self.geo_ids)), dtype=float)
         dirs = [[0, 1], [1, 0], [-1, 0], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]]
         for i in range(self.len_row):
             for j in range(self.len_column):
@@ -283,7 +283,7 @@ class TrafficStateDataset(AbstractDataset):
         data = []
         for i in range(0, df.shape[0], len_time):
             data.append(df[i:i + len_time].values)
-        data = np.array(data, dtype=np.float)  # (len(self.geo_ids), len_time, feature_dim)
+        data = np.array(data, dtype=float)  # (len(self.geo_ids), len_time, feature_dim)
         data = data.swapaxes(0, 1)  # (len_time, len(self.geo_ids), feature_dim)
         self._logger.info("Loaded file " + filename + '.dyna' + ', shape=' + str(data.shape))
         return data
@@ -329,7 +329,7 @@ class TrafficStateDataset(AbstractDataset):
         data = []
         for i in range(0, df.shape[0], len_time):
             data.append(df[i:i + len_time].values)
-        data = np.array(data, dtype=np.float)  # (len(self.geo_ids), len_time, feature_dim)
+        data = np.array(data, dtype=float)  # (len(self.geo_ids), len_time, feature_dim)
         data = data.swapaxes(0, 1)  # (len_time, len(self.geo_ids), feature_dim)
         self._logger.info("Loaded file " + filename + '.grid' + ', shape=' + str(data.shape))
         return data
@@ -379,7 +379,7 @@ class TrafficStateDataset(AbstractDataset):
                 index = (i * self.len_column + j) * len_time
                 tmp.append(df[index:index + len_time].values)
             data.append(tmp)
-        data = np.array(data, dtype=np.float)  # (len_row, len_column, len_time, feature_dim)
+        data = np.array(data, dtype=float)  # (len_row, len_column, len_time, feature_dim)
         data = data.swapaxes(2, 0).swapaxes(1, 2)  # (len_time, len_row, len_column, feature_dim)
         self._logger.info("Loaded file " + filename + '.grid' + ', shape=' + str(data.shape))
         return data
@@ -979,6 +979,7 @@ class TrafficStateDataset(AbstractDataset):
         # 把训练集的X和y聚合在一起成为list，测试集验证集同理
         # x_train/y_train: (num_samples, input_length, ..., feature_dim)
         # train_data(list): train_data[i]是一个元组，由x_train[i]和y_train[i]组成
+        print(x_train.shape, y_train.shape, x_val.shape, y_val.shape, x_test.shape, y_test.shape)
         train_data = list(zip(x_train, y_train))
         eval_data = list(zip(x_val, y_val))
         test_data = list(zip(x_test, y_test))

@@ -10,10 +10,10 @@
   "add_time_in_day": false,
   "add_day_in_week": false,
 
-  "max_epoch": 5000,
+  "max_epoch": 100,
   "learner": "adam",
   "learning_rate": 0.001,
-  "lr_decay": false,
+  "lr_decay": true,
   "clip_grad_norm": false,
   "use_early_stop": false
 }

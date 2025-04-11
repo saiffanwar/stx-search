@@ -297,6 +297,7 @@ class TrafficStateExecutor(AbstractExecutor):
         train_time = []
         eval_time = []
         num_batches = len(train_dataloader)
+        num_batches = 10
         self._logger.info("num_batches:{}".format(num_batches))
 
         for epoch_idx in range(self._epoch_num, self.epochs):
@@ -376,9 +377,7 @@ class TrafficStateExecutor(AbstractExecutor):
             self.optimizer.zero_grad()
             batch.to_tensor(self.device)
             output = self.model.predict(batch)
-            print('output:', output)
             loss = loss_func(batch)
-            print(loss)
             self._logger.debug(loss.item())
             losses.append(loss.item())
             loss.backward()

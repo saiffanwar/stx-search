@@ -6,31 +6,32 @@ import dash_daq as daq
 import plotly.express as px
 import pandas as pd
 from visualisation_utils import graph_visualiser, annealing_progression, explanation_heatmap, exp_temporal_distribution
-from simulated_annealing import SimulatedAnnealing
-from explainer import run_explainer
 import numpy as np
-import pickle as pck
+import dill as pck
 from dash_bootstrap_templates import load_figure_template
 import sys
 import argparse
+import copy
 #load_figure_template("darkly")
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-t', '--target_node', type=int, default=0, help='Target node index for explanation')
 parser.add_argument('-s', '--subgraph_size', type=int, default=100, help='Size of the subgraph for explanation')
-parser.add_argument('-m', '--mode', type=str, default='fidelity+size', help='Mode for the simulated annealing algorithm')
+parser.add_argument('-m', '--mode', type=str, default='fidelity', help='Mode for the simulated annealing algorithm')
+parser.add_argument('-d', '--dataset', type=str, default='GRID', help='Which dataset to use')
 args = parser.parse_args()
 
-results_dir = f'results/METR_LA/simulated_annealing/best_result_{args.target_node}_{args.subgraph_size}_{args.mode}.pck'
+results_dir = f'results/{args.dataset}/best_result_{args.target_node}_{args.subgraph_size}_{args.mode}.pck'
 
 with open(results_dir, 'rb') as f:
-    explainer, sa = pck.load(f)
+    data = pck.load(f)
+    explainer, sa = data
 
-exp_vis_fig, plotting_data = graph_visualiser(explainer, sa)
-exp_heatmap_fig = explanation_heatmap(plotting_data, sa)
-annealing_progression_fig = annealing_progression(sa)
-exp_temporal_distribution_fig = exp_temporal_distribution(plotting_data, sa)
+exp_vis_fig = graph_visualiser(sa, explainer)
+exp_heatmap_fig = explanation_heatmap(sa, explainer)
+annealing_progression_fig = annealing_progression(sa, explainer)
+exp_temporal_distribution_fig = exp_temporal_distribution(sa, explainer)
 
 
 # Initialize the Dash app
@@ -93,14 +94,13 @@ def update_graphs(n_clicks):
 #    sa.current_events, sa.current_score = sa.annealing_iteration(sa.current_events, sa.current_score)
     with open(results_dir, 'rb') as f:
         explainer, sa = pck.load(f)
-    print('Getting update')
     ''' plotting_data is a dictionary containing data for the full graph and the explanation graph with keys
         'full_input'  and 'explanation'. Each key contains a list of T lists where T is the length of the
         input window and each sublist contains [node longs, node lats, node timestamps, node indices] '''
-    exp_vis_fig, plotting_data = graph_visualiser(explainer, sa)
+    exp_vis_fig = graph_visualiser(sa, explainer)
 
-    exp_heatmap_fig = explanation_heatmap(plotting_data, sa)
-    exp_temporal_distribution_fig = exp_temporal_distribution(plotting_data, sa)
+    exp_heatmap_fig = explanation_heatmap(sa, explainer)
+    exp_temporal_distribution_fig = exp_temporal_distribution(sa, explainer)
 
     return exp_vis_fig, exp_heatmap_fig, exp_temporal_distribution_fig
 
@@ -114,7 +114,7 @@ def update_probs_plot(n_intervals, value):
     if not value:
         with open(results_dir, 'rb') as f:
             explainer, sa = pck.load(f)
-        annealing_progression_fig = annealing_progression(sa)
+        annealing_progression_fig = annealing_progression(sa, explainer)
 
     return annealing_progression_fig
 

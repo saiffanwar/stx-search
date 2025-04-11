@@ -15,7 +15,7 @@
   "add_day_in_week": false,
 
   "max_epoch": 10,
-  "learner": "rmsprop",
+  "learner": "adam",
   "learning_rate": 0.001,
   "lr_decay": true,
   "lr_scheduler": "steplr",
