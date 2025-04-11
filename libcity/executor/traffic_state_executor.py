@@ -256,8 +256,6 @@ class TrafficStateExecutor(AbstractExecutor):
             # self.evaluator.clear()
             y_truths = []
             y_preds = []
-            with open(os.getcwd()+'test_data.pkl', 'wb') as f:
-                pck.dump(test_dataloader, f)
             for batch in test_dataloader:
                 batch.to_tensor(self.device)
                 output = self.model.predict(batch)
@@ -299,6 +297,7 @@ class TrafficStateExecutor(AbstractExecutor):
         num_batches = len(train_dataloader)
         num_batches = 10
         self._logger.info("num_batches:{}".format(num_batches))
+        self.epochs = 1
 
         for epoch_idx in range(self._epoch_num, self.epochs):
             start_time = time.time()

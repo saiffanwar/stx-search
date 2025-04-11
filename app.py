@@ -8,7 +8,6 @@ import pandas as pd
 from visualisation_utils import graph_visualiser, annealing_progression, explanation_heatmap, exp_temporal_distribution
 import numpy as np
 import dill as pck
-from dash_bootstrap_templates import load_figure_template
 import sys
 import argparse
 import copy
@@ -125,7 +124,7 @@ def update_probs_plot(n_intervals, value):
 if __name__ == '__main__':
 #    while True:
 #        try:
-    app.run_server(debug=True)
+    app.run(debug=True)
 #        except:
 #            pass
 

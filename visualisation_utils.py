@@ -11,7 +11,7 @@ from collections import defaultdict
 
 mapbox_access_token = open(".mapboxtoken").read()
 
-dataset = 'GRID'
+dataset = 'METR_LA'
 if dataset == 'METR_LA':
     with open('visualized_data/METR_LA_dyna.json') as json_data:
         d = json.load(json_data)
@@ -28,12 +28,14 @@ if dataset == 'METR_LA':
         geo_ids.append(node['properties']['geo_id'])
     x_coords = longs
     y_coords = lats
+
 elif dataset == 'GRID':
     gridsize = 10
     coords = [[i, j] for i in range(gridsize) for j in range(gridsize)]
     x_coords = [i for i,j in coords]
     y_coords = [j for i,j in coords]
 
+print(x_coords)
 def adj_mx_to_edges(adj_mx):
     edges = []
     for s in range(len(adj_mx)):

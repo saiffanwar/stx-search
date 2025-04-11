@@ -133,7 +133,7 @@ class STX_Search_LibCity:
 
         complement_events = [node for node in self.candidate_events if node not in exp_events]
         complement_masked_input = self.generate_masked_input(complement_events)
-        complement_masked_input.to_tensor(self.device)
+#        complement_masked_input.to_tensor(self.device)
         complement_exp_y = self.model.predict(complement_masked_input).cpu()
         complement_exp_y = self.scaler.inverse_transform(complement_exp_y)
         target_complement_exp_y = complement_exp_y[0, 0, target_node, 0]

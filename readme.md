@@ -14,6 +14,8 @@
 
 
 
+
+
 ## The additional contribution to this repository is in the form of XAI method STX-Search, outlined in the paper below.
 
 '*STX-Search: Explanation Search for Continuous Dynamic Spatio-Temporal Models*' https://www.arxiv.org/pdf/2503.04509
@@ -31,6 +33,18 @@
 `mcts.py`
 
 `alpha_zero_model.py`
+
+##### For Python 3.12 install required packages:
+
+`pip install requirements.txt`
+
+Unfortunately there is a bug within the dgl library so the following file:
+
+`python3.12/site-packages/dgl/graphbolt/libgraphbolt_pytorch_2.2.1.so`
+
+must be renamed to:
+
+`python3.12/site-packages/dgl/graphbolt/libgraphbolt_pytorch_2.3.1.so`
 
 ### Training a model
 
@@ -56,6 +70,23 @@ The explainer is run using the following command to explain the prediction for n
 
 #### Visualisation:
 
-To view the progress and the outcomes of the explanation framework, the following dash tool can be used
+To view the progress and the outcomes of the explanation framework, the following dash tool can be used. For real road networks, the map is shown e.g.
 
-`python app.py --dataset GRID --target_node 5 --subgraph_size 50
+`python app.py --dataset METR_LA --target_node 5 --subgraph_size 50`
+
+![Screenshot From 2025-04-11 11-23-58](figures/graph.png)
+
+![Screenshot From 2025-04-11 11-24-20](figures/map.png)
+
+![Screenshot From 2025-04-11 11-23-29](figures/prog.png)
+
+
+
+
+
+
+
+
+
+
+
