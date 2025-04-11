@@ -18,7 +18,19 @@
 
 '*STX-Search: Explanation Search for Continuous Dynamic Spatio-Temporal Models*' https://www.arxiv.org/pdf/2503.04509
 
+**Added Files:**
 
+`libcity_explainer_runner.py`
+
+`sa_explainer.py`
+
+`app.y`
+
+`visualisation_utils.py`
+
+`mcts.py`
+
+`alpha_zero_model.py`
 
 ### Training a model
 
@@ -46,4 +58,4 @@ The explainer is run using the following command to explain the prediction for n
 
 To view the progress and the outcomes of the explanation framework, the following dash tool can be used
 
-`python app.py --dataset GRID --model TGCN`
+`python app.py --dataset GRID --target_node 5 --subgraph_size 50
