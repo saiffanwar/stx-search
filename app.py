@@ -5,7 +5,7 @@ from dash.dependencies import Input, Output
 import dash_daq as daq
 import plotly.express as px
 import pandas as pd
-from visualisation_utils import graph_visualiser, annealing_progression, explanation_heatmap, exp_temporal_distribution
+from visualisation_utils import Visualisation
 import numpy as np
 import dill as pck
 import sys
@@ -15,23 +15,15 @@ import copy
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-t', '--target_node', type=int, default=0, help='Target node index for explanation')
-parser.add_argument('-s', '--subgraph_size', type=int, default=100, help='Size of the subgraph for explanation')
+parser.add_argument('-t', '--target_node', type=int, default=12, help='Target node index for explanation')
+parser.add_argument('-s', '--subgraph_size', type=int, default=50, help='Size of the subgraph for explanation')
 parser.add_argument('-m', '--mode', type=str, default='fidelity', help='Mode for the simulated annealing algorithm')
 parser.add_argument('-d', '--dataset', type=str, default='GRID', help='Which dataset to use')
 args = parser.parse_args()
 
-results_dir = f'results/{args.dataset}/best_result_{args.target_node}_{args.subgraph_size}_{args.mode}.pck'
 
-with open(results_dir, 'rb') as f:
-    data = pck.load(f)
-    explainer, sa = data
-
-exp_vis_fig = graph_visualiser(sa, explainer)
-exp_heatmap_fig = explanation_heatmap(sa, explainer)
-annealing_progression_fig = annealing_progression(sa, explainer)
-exp_temporal_distribution_fig = exp_temporal_distribution(sa, explainer)
-
+visualiser = Visualisation(dataset=args.dataset, target_idx=args.target_node, subgraph_size=args.subgraph_size, mode=args.mode)
+exp_graph_fig, exp_heatmap_fig, exp_progression_fig, exp_temporal_distribution_fig = visualiser.generate_plots()
 
 # Initialize the Dash app
 app = dash.Dash(__name__)
@@ -52,26 +44,26 @@ app.layout = html.Div(children=[
             )]),
     # Button to update the plotly
     dcc.Graph(
-        figure=annealing_progression_fig,
-        id='annealing-progression-fig',
+        figure=exp_progression_fig,
+        id='exp-progression-fig',
         ),
 
     html.Button('Update Explanation Graph Plot', id='update-plot-btn', n_clicks=0),
         # Plotly graph
     dcc.Graph(
-        figure=exp_vis_fig,
-        id='explanation_vis',
+        figure=exp_graph_fig,
+        id='explanation_graph',
         ),
     html.Div(className='row', children=[
     # Plotly graph
     dcc.Graph(
         figure=exp_heatmap_fig,
-        id='exp_heatmap_vis',
+        id='exp_heatmap_fig',
         style={'display': 'inline-block', 'width': '58vw', 'margin-left': '0px'}
     ),
     dcc.Graph(
         figure=exp_temporal_distribution_fig,
-        id='exp_temporal_distribution_vis',
+        id='exp_temporal_distribution_fig',
         style={'display': 'inline-block', 'width': '38vw', 'margin-right': '10px'}
         )
     ]),
@@ -83,39 +75,37 @@ app.layout = html.Div(children=[
 ])
 
 @app.callback(
-    Output('explanation_vis', 'figure'),
-    Output('exp_heatmap_vis', 'figure'),
-    Output('exp_temporal_distribution_vis', 'figure'),
+    Output('explanation_fig', 'figure'),
+    Output('exp_heatmap_fig', 'figure'),
+    Output('exp_temporal_distribution_fig', 'figure'),
     Input('update-plot-btn', 'n_clicks')
 )
 def update_graphs(n_clicks):
 #    print(n_intervals)
 #    sa.current_events, sa.current_score = sa.annealing_iteration(sa.current_events, sa.current_score)
-    with open(results_dir, 'rb') as f:
-        explainer, sa = pck.load(f)
-    ''' plotting_data is a dictionary containing data for the full graph and the explanation graph with keys
-        'full_input'  and 'explanation'. Each key contains a list of T lists where T is the length of the
-        input window and each sublist contains [node longs, node lats, node timestamps, node indices] '''
-    exp_vis_fig = graph_visualiser(sa, explainer)
+    visualiser.load_result_file()
+    exp_graph_fig = visualiser.graph_visualiser()
 
-    exp_heatmap_fig = explanation_heatmap(sa, explainer)
-    exp_temporal_distribution_fig = exp_temporal_distribution(sa, explainer)
+    exp_heatmap_fig = visualiser.explanation_heatmap()
+    exp_temporal_distribution_fig = visualiser.exp_temporal_distribution()
 
-    return exp_vis_fig, exp_heatmap_fig, exp_temporal_distribution_fig
+    return exp_graph_fig, exp_heatmap_fig, exp_temporal_distribution_fig
 
 @app.callback(
-    Output('annealing-progression-fig', 'figure'),
+    Output('exp-progression-fig', 'figure'),
     Input('interval-component', 'n_intervals'),
     Input('pause-toggle', 'value')
 )
 def update_probs_plot(n_intervals, value):
 
-    if not value:
-        with open(results_dir, 'rb') as f:
-            explainer, sa = pck.load(f)
-        annealing_progression_fig = annealing_progression(sa, explainer)
+    if value == False:
+        visualiser.load_result_file()
+        exp_progression_fig = visualiser.exp_progression()
+    else:
+        exp_progression_fig = visualiser.exp_progression()
 
-    return annealing_progression_fig
+
+    return exp_progression_fig
 
 
 
@@ -124,7 +114,7 @@ def update_probs_plot(n_intervals, value):
 if __name__ == '__main__':
 #    while True:
 #        try:
-    app.run(debug=True)
+    app.run(debug=False)
 #        except:
 #            pass
 

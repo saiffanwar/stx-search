@@ -190,7 +190,7 @@ class SimulatedAnnealing:
                 args = (current_events, current_score)
                 current_events, current_score = self.annealing_iteration(*args, mode=self.expmode, iteration=i)
                 if i%100 == 0:
-                    with open(f'results/simulated_annealing/{self.dataset_name}/best_result_{self.target_idx}_{self.exp_size}_fidelity.pck', 'wb') as f:
+                    with open(f'results/{self.dataset_name}/best_result_{self.target_idx}_{self.exp_size}_fidelity.pck', 'wb') as f:
                         pck.dump([explainer, self], f)
         self.best_events = [int(e) for e in self.best_events]
         print('Best events: ', sorted(self.best_events))

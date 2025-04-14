@@ -16,7 +16,7 @@ from libcity.config import ConfigParser
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-m', '--model', type=str, default='generate', help='Mode of operation: generate or visualise')
+parser.add_argument('-m', '--model', type=str, default='TGCN', help='Mode of operation: generate or visualise')
 parser.add_argument('-t', '--target_node', type=int, default=12, help='Target node index for explanation')
 parser.add_argument('-s', '--subgraph_size', type=int, default=50, help='Size of the subgraph for explanation')
 parser.add_argument('-d', '--dataset', type=str, default='METR_LA', help='Dataset name')
