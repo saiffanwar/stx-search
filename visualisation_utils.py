@@ -53,9 +53,9 @@ class Visualisation:
         return exp_graph_fig, exp_heatmap_fig, exp_progression_fig, exp_temporal_distribution_fig
 
 
-    def fetch_layer_edges(self, subgraph_nodes):
-        edges = {(n, m): self.explainer.adj_mx[n,m] for n in subgraph_nodes for m in subgraph_nodes}
-        return edges
+    def fetch_layer_edges(self, ):
+        weights = self.explainer.adj_mx[self.target_idx]
+        return edge_weights
 
 
     def events_to_coords(self, events):
@@ -143,7 +143,6 @@ class Visualisation:
                     for color in node_colors
                 ]
 
-# Create a 3D scatter plot for the nodes
                 fig.add_trace(go.Scatter3d(
                     x=xs,
                     y=ys,
@@ -156,8 +155,18 @@ class Visualisation:
 
 
 # Create a 3D line plot for the edges
-                edges = self.fetch_layer_edges(d)
-                print(edges)
+
+#                edges = self.fetch_layer_edges()
+#
+#                edge_cmap = plt.cm.get_cmap('Greys')
+#                edge_srcs = [k[0] for k in edges.keys()]
+#                edge_dsts = [k[1] for k in edges.keys()]
+#                edge_weights = [v for v in edges.values()]
+#                edge_colors = [edge_cmap(norm(i)) for i in edge_weights]
+#                edge_colors_rgb = [
+#                    f'rgb({int(255 * color[0])},{int(255 * color[1])},{int(255 * color[2])})'
+#                    for color in edge_colors
+#                ]
 #                fig.add_trace(go.Scatter3d(
 #                    x=x_edges,
 #                    y=y_edges,

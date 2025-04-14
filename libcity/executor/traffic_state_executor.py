@@ -126,6 +126,7 @@ class TrafficStateExecutor(AbstractExecutor):
             epoch(int): 轮数
         """
         model_path = self.cache_dir + '/' + self.config['model'] + '_' + self.config['dataset'] + '_epoch%d.tar' % epoch
+        print(model_path)
         assert os.path.exists(model_path), 'Weights at epoch %d not found' % epoch
         checkpoint = torch.load(model_path, map_location='cpu')
         self.model.load_state_dict(checkpoint['model_state_dict'])
@@ -295,9 +296,8 @@ class TrafficStateExecutor(AbstractExecutor):
         train_time = []
         eval_time = []
         num_batches = len(train_dataloader)
-        num_batches = 10
         self._logger.info("num_batches:{}".format(num_batches))
-        self.epochs = 1
+        self.epochs = 30
 
         for epoch_idx in range(self._epoch_num, self.epochs):
             start_time = time.time()
