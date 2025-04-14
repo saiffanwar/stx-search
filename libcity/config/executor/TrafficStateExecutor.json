@@ -13,7 +13,7 @@
   "lr_alpha": 0.99,
   "lr_momentum": 0,
   "lr_decay": false,
-  "lr_scheduler": "none",
+  "lr_scheduler": "MultiStepLR",
   "lr_decay_ratio": 0.1,
   "steps": [],
   "step_size": 10,

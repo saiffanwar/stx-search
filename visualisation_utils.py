@@ -28,28 +28,20 @@ class Visualisation:
             self.explainer, self.sa = data
 
     def load_coordinates(self,):
-        if self.dataset == 'METR_LA':
-            with open('visualized_data/METR_LA_dyna.json') as json_data:
+#        if self.dataset == 'METR_LA':
+            with open(f'visualized_data/{self.dataset}_dyna.json') as json_data:
                 d = json.load(json_data)
                 json_data.close()
 
             nodes = d['features']
-            lats = []
-            longs = []
+            self.x_coords = []
+            self.y_coords = []
             geo_ids = []
 
             for node in nodes:
-                lats.append(node['geometry']['coordinates'][1])
-                longs.append(node['geometry']['coordinates'][0])
+                self.x_coords.append(node['geometry']['coordinates'][0])
+                self.y_coords.append(node['geometry']['coordinates'][1])
                 geo_ids.append(node['properties']['geo_id'])
-            self.x_coords = longs
-            self.y_coords = lats
-
-        elif self.dataset == 'GRID':
-            gridsize = 10
-            coords = [[i, j] for i in range(gridsize) for j in range(gridsize)]
-            self.x_coords = [i for i,j in coords]
-            self.y_coords = [j for i,j in coords]
 
     def generate_plots(self, ):
 
@@ -62,14 +54,7 @@ class Visualisation:
 
 
     def fetch_layer_edges(self, subgraph_nodes):
-        edges = []
-        for n in subgraph_nodes:
-            node_edges = self.explainer.adj_mx[:, n]
-            connected_nodes = list(np.argwhere(node_edges > 0).flatten())
-            for c in connected_nodes:
-                if c in subgraph_nodes:
-                    edges.append([n, c])
-#    print(subgraph_nodes, edges)
+        edges = {(n, m): self.explainer.adj_mx[n,m] for n in subgraph_nodes for m in subgraph_nodes}
         return edges
 
 
@@ -152,16 +137,6 @@ class Visualisation:
                 node_colors = [cmap(norm(i)) for i in node_values]
                 # Map the node values to colors using the colormap
 
-#        edges = fetch_layer_edges(subgraph_nodes, adj_mx)
-
-#                x_edges = []
-#                y_edges = []
-#                z_edges = []
-#                for edge in edges:
-#                    s,t = edge
-#                    x_edges += [longs[s], longs[t], None]  # x-coordinates of the edge start, end, and separator (None)
-#                    y_edges += [lats[s], lats[t], None]  # x-coordinates of the edge start, end, and separator (None)
-#                    z_edges += [plotting_timestamp, plotting_timestamp, None]  # x-coordinates of the edge start, end, and separator (None)
                 # Extract the RGB colors for plotly (plotly needs RGB in the form 'rgb(R,G,B)')
                 node_colors_rgb = [
                     f'rgb({int(255 * color[0])},{int(255 * color[1])},{int(255 * color[2])})'
@@ -181,6 +156,8 @@ class Visualisation:
 
 
 # Create a 3D line plot for the edges
+                edges = self.fetch_layer_edges(d)
+                print(edges)
 #                fig.add_trace(go.Scatter3d(
 #                    x=x_edges,
 #                    y=y_edges,

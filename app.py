@@ -75,7 +75,7 @@ app.layout = html.Div(children=[
 ])
 
 @app.callback(
-    Output('explanation_fig', 'figure'),
+    Output('explanation_graph', 'figure'),
     Output('exp_heatmap_fig', 'figure'),
     Output('exp_temporal_distribution_fig', 'figure'),
     Input('update-plot-btn', 'n_clicks')
@@ -114,7 +114,7 @@ def update_probs_plot(n_intervals, value):
 if __name__ == '__main__':
 #    while True:
 #        try:
-    app.run(debug=False)
+    app.run(debug=True)
 #        except:
 #            pass
 

@@ -11,6 +11,7 @@ import random
 from libcity.config import ConfigParser
 from libcity.data import get_dataset
 from libcity.utils import get_executor, get_model, get_logger, ensure_dir, set_random_seed
+from libcity.utils.visualize import VisHelper
 
 
 def run_model(task=None, model_name=None, dataset_name=None, config_file=None,
@@ -47,6 +48,8 @@ def run_model(task=None, model_name=None, dataset_name=None, config_file=None,
     # This uses the function in data.utils to fetch the dataset class that will be used to load the dataset.
     dataset = get_dataset(config)
 
+    vis = VisHelper(config)
+    vis.visualize()
     # get_data function is defined in the parent of traffic_state_point_dataset.py
     # This function returns the data in the form of a DataLoader, which includes training data, test data, and validation data.
     train_data, valid_data, test_data = dataset.get_data()

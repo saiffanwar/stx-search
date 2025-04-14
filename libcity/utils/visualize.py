@@ -8,8 +8,8 @@ class VisHelper:
     def __init__(self, _config):
 
         self.config = _config
-        self.raw_path = './raw_data/'
         self.dataset = _config.get("dataset", "")
+        self.raw_path = f'./raw_data/'
         self.save_path = _config.get("save_path", "./visualized_data/")
 
         # get type

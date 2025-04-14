@@ -1,5 +1,7 @@
 raw_data/METR_LA/
 libcity/cache/dataset_cache/
+results/
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

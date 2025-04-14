@@ -159,7 +159,7 @@
             "type": "Feature",
             "properties": {
                 "geo_id": 767471,
-                "traffic_speed": 55.61299575385709
+                "traffic_speed": 55.612995753857106
             },
             "geometry": {
                 "type": "Point",
@@ -229,7 +229,7 @@
             "type": "Feature",
             "properties": {
                 "geo_id": 771667,
-                "traffic_speed": 28.310130197912493
+                "traffic_speed": 28.3101301979125
             },
             "geometry": {
                 "type": "Point",
@@ -341,7 +341,7 @@
             "type": "Feature",
             "properties": {
                 "geo_id": 717578,
-                "traffic_speed": 59.71073176955967
+                "traffic_speed": 59.71073176955968
             },
             "geometry": {
                 "type": "Point",
@@ -579,7 +579,7 @@
             "type": "Feature",
             "properties": {
                 "geo_id": 772140,
-                "traffic_speed": 52.165237773350086
+                "traffic_speed": 52.16523777335008
             },
             "geometry": {
                 "type": "Point",
@@ -621,7 +621,7 @@
             "type": "Feature",
             "properties": {
                 "geo_id": 774012,
-                "traffic_speed": 61.32076140641441
+                "traffic_speed": 61.32076140641443
             },
             "geometry": {
                 "type": "Point",
@@ -691,7 +691,7 @@
             "type": "Feature",
             "properties": {
                 "geo_id": 716956,
-                "traffic_speed": 55.27166601594342
+                "traffic_speed": 55.271666015943424
             },
             "geometry": {
                 "type": "Point",
@@ -1629,7 +1629,7 @@
             "type": "Feature",
             "properties": {
                 "geo_id": 717572,
-                "traffic_speed": 57.58233773833607
+                "traffic_speed": 57.582337738336065
             },
             "geometry": {
                 "type": "Point",
@@ -1657,7 +1657,7 @@
             "type": "Feature",
             "properties": {
                 "geo_id": 717570,
-                "traffic_speed": 61.348191684081044
+                "traffic_speed": 61.34819168408103
             },
             "geometry": {
                 "type": "Point",
@@ -2203,7 +2203,7 @@
             "type": "Feature",
             "properties": {
                 "geo_id": 717465,
-                "traffic_speed": 55.77086651790346
+                "traffic_speed": 55.770866517903464
             },
             "geometry": {
                 "type": "Point",
@@ -2217,7 +2217,7 @@
             "type": "Feature",
             "properties": {
                 "geo_id": 764794,
-                "traffic_speed": 51.13110636615757
+                "traffic_speed": 51.13110636615758
             },
             "geometry": {
                 "type": "Point",
@@ -2693,7 +2693,7 @@
             "type": "Feature",
             "properties": {
                 "geo_id": 717452,
-                "traffic_speed": 54.655088725304935
+                "traffic_speed": 54.65508872530494
             },
             "geometry": {
                 "type": "Point",
@@ -2721,7 +2721,7 @@
             "type": "Feature",
             "properties": {
                 "geo_id": 759772,
-                "traffic_speed": 49.847139955519246
+                "traffic_speed": 49.84713995551925
             },
             "geometry": {
                 "type": "Point",
@@ -2777,7 +2777,7 @@
             "type": "Feature",
             "properties": {
                 "geo_id": 769372,
-                "traffic_speed": 58.15667915314274
+                "traffic_speed": 58.15667915314273
             },
             "geometry": {
                 "type": "Point",
@@ -2833,7 +2833,7 @@
             "type": "Feature",
             "properties": {
                 "geo_id": 717592,
-                "traffic_speed": 56.91508257238081
+                "traffic_speed": 56.9150825723808
             },
             "geometry": {
                 "type": "Point",
