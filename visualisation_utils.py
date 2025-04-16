@@ -14,18 +14,54 @@ mapbox_access_token = open(".mapboxtoken").read()
 
 class Visualisation:
     def __init__(self, dataset, target_idx, subgraph_size, mode):
+
         self.dataset = dataset
         self.target_idx = target_idx
         self.subgraph_size = subgraph_size
         self.mode = mode
         self.results_dir = f'results/{self.dataset}/best_result_{self.target_idx}_{self.subgraph_size}_{self.mode}.pck'
-        self.load_result_file()
+
+        with open(self.results_dir, 'rb') as f:
+            results = pck.load(f)
+
+        self.x_data = results['x_data']
+        self.input_window = results['input_window']
+        self.adj_mx = results['adj_mx']
+        self.candidate_events = results['candidate_events']
+        self.graph_events = results['graph_events']
+
+        self.exp_events = results['events']
+
+        self.scores = results['scores']
+        self.errors = results['errors']
+        self.sizes = results['exp_sizes']
+        self.probabilities = results['probabilities']
+
+        self.model_y = results['model_y']
+        self.target_model_y = results['target_model_y']
+        self.exp_y = results['exp_y']
+        self.target_exp_y = results['target_exp_y']
+
         self.load_coordinates()
 
-    def load_result_file(self, ):
-        with open(self.results_dir, 'rb') as f:
-            data = pck.load(f)
-            self.explainer, self.sa = data
+    def reload_result_file(self, ):
+        while True:
+            try:
+                with open(self.results_dir, 'rb') as f:
+                    results = pck.load(f)
+                break
+            except:
+                pass
+
+        self.exp_events = results['events']
+
+        self.scores = results['scores']
+        self.errors = results['errors']
+        self.sizes = results['exp_sizes']
+        self.probabilities = results['probabilities']
+
+        self.exp_y = results['exp_y']
+        self.target_exp_y = results['target_exp_y']
 
     def load_coordinates(self,):
 #        if self.dataset == 'METR_LA':
@@ -54,7 +90,7 @@ class Visualisation:
 
 
     def fetch_layer_edges(self, ):
-        weights = self.explainer.adj_mx[self.target_idx]
+        weights = self.adj_mx[self.target_idx]
         return edge_weights
 
 
@@ -62,7 +98,7 @@ class Visualisation:
         xs, ys, zs = [], [], []
         values = []
         for e in events:
-            event_obj = self.explainer.events[e]
+            event_obj = self.graph_events[e]
             e_t, e_idx = event_obj.timestamp, event_obj.node_idx
             x, y = self.x_coords[e_idx], self.y_coords[e_idx]
             z = e_t
@@ -75,31 +111,19 @@ class Visualisation:
 
 
     def graph_visualiser(self,):
-# Create a random graph using networkx
-        x = self.explainer.data['X'].detach().cpu().numpy()
-        model_y = self.explainer.model_y.detach().cpu().numpy()
-        target_model_y = model_y[0, 0, self.sa.target_idx, 0]
-
-        exp_y = self.explainer.exp_prediction(self.sa.best_events).detach().cpu().numpy()
-        target_exp_y = exp_y[0, 0, self.sa.target_idx, 0]
-        adj_mx = self.explainer.adj_mx
-
-
-
-# Layout for the plot
         # Combine the traces into a figure
         fig = make_subplots(rows=1, cols=2, specs=[[{'type': 'scatter3d'}, {'type': 'scatter3d'}]],
-                            subplot_titles=[f'Model Prediction: {target_model_y}', f'Explanation Prediction: {target_exp_y}'],
+                            subplot_titles=[f'Model Prediction: {self.target_model_y}', f'Explanation Prediction: {self.target_exp_y}'],
                             vertical_spacing=0,
                             horizontal_spacing=0.05)
 
         plot_axes = [[1, 1], [1, 2]]
 
-        events = [self.explainer.candidate_events, self.sa.best_events]
-        data = [[self.explainer.candidate_events, model_y], [self.sa.best_events, exp_y]]
+        events = [self.candidate_events, self.exp_events]
+        data = [[self.candidate_events, self.model_y], [self.exp_events, self.exp_y]]
         _,_,_, all_values = self.events_to_coords(events[0])
-        min_val = min(min(all_values), min(model_y.flatten()), min(exp_y.flatten()))
-        max_val = max(max(all_values), max(model_y.flatten()), max(exp_y.flatten()))
+        min_val = min(min(all_values), min(self.model_y.flatten()), min(self.exp_y.flatten()))
+        max_val = max(max(all_values), max(self.model_y.flatten()), max(self.exp_y.flatten()))
 #    max_val = max(all_values)
         norm = plt.Normalize(vmin=min_val, vmax=max_val)
 
@@ -113,13 +137,13 @@ class Visualisation:
                 if i == 0:
                     xs, ys, zs, values = self.events_to_coords(d)
                     cmap = plt.cm.get_cmap('Greens')
-                    node_idxs = [self.explainer.events[e].node_idx for e in d]
-                    node_values = [self.explainer.events[e].value for e in d]
-                    node_timestamps = [self.explainer.events[e].timestamp for e in d]
+                    node_idxs = [self.graph_events[e].node_idx for e in d]
+                    node_values = [self.graph_events[e].value for e in d]
+                    node_timestamps = [self.graph_events[e].timestamp for e in d]
                 else:
                     xs = self.x_coords
                     ys = self.y_coords
-                    zs = [self.explainer.input_window+1 for _ in range(len(self.x_coords))]
+                    zs = [self.input_window+1 for _ in range(len(self.x_coords))]
                     node_idxs = list(range(len(self.x_coords)))
                     node_timestamps = zs
                     node_values = d[0, 0, :, 0].flatten()
@@ -176,15 +200,16 @@ class Visualisation:
 #                    hoverinfo='none'
 #                ), row=row_num, col=col_num)
 
+
             plotting_data_num += 1
 
             fig.add_trace(go.Scatter3d(
-                x=[ self.x_coords[self.sa.target_idx] ],
-                y=[ self.y_coords[self.sa.target_idx] ],
+                x=[ self.x_coords[self.target_idx] ],
+                y=[ self.y_coords[self.target_idx] ],
                 z=[13],
                 mode='markers',
                 marker=dict(size=20, color='orange', opacity=0.8),
-                text=[f"Node: {self.sa.target_idx} \n Timestamp {13} \n Value: {self.explainer.model_y[0, 0, self.sa.target_idx, 0]}"],
+                text=[f"Node: {self.target_idx} \n Timestamp {13} \n Value: {self.model_y[0, 0, self.target_idx, 0]}"],
                 hoverinfo='text'
                 ), row=row_num, col=col_num)
 
@@ -226,25 +251,21 @@ class Visualisation:
 
 
     def exp_progression(self, hide_rejected=False):
-        probabilities = self.sa.acceptance_probabilities
-        scores = self.sa.scores
-        errors = self.sa.errors
-        sizes = self.sa.exp_sizes
 #    best_score = sa.best_score
-        xs = np.arange(1, len(probabilities)+1, 1)
+        xs = np.arange(1, len(self.probabilities)+1, 1)
 #    temperatures =  [sa.starting_temperature * (sa.cooling_rate ** i) for i in range(1, len(xs) + 1)]
 #    ys = probabilities
 #    actions = ['Accepted move' if a else 'Rejected' for a in sa.actions]
 
-        hovertext = [f'Probability: {p} <br> Score: {s} <br> Error: {e} <br> Exp Size: {e_s} ' for p, s, e, e_s in zip(probabilities, scores, errors, sizes)]
+        hovertext = [f'Probability: {p} <br> Score: {s} <br> Error: {e} <br> Exp Size: {e_s} ' for p, s, e, e_s in zip(self.probabilities, self.scores, self.errors, self.sizes)]
 
 
         fig = make_subplots(rows=2, cols=2, shared_xaxes=True, vertical_spacing=0.05, subplot_titles=['Current Score', 'Explanation Size', 'Error', 'Acceptance Probability'],)
 
-        fig.add_trace(go.Scatter(x=xs, y = scores, name='Current Score', text=hovertext, hoverinfo='text', line=dict(color='blue')), row=1, col=1)
-        fig.add_trace(go.Scatter(x=xs, y = sizes, name='Explanation Size', text=hovertext, hoverinfo='text', line=dict(color='green')), row=1, col=2)
-        fig.add_trace(go.Scatter(x=xs, y = errors, name='Error', text=hovertext, hoverinfo='text', line=dict(color='red')), row=2, col=1)
-        fig.add_trace(go.Scatter(x=xs, y = probabilities, mode='markers', name='Acceptance Probabilities', text=hovertext, hoverinfo='text', line=dict(color='purple')), row=2, col=2)
+        fig.add_trace(go.Scatter(x=xs, y = self.scores, name='Current Score', text=hovertext, hoverinfo='text', line=dict(color='blue')), row=1, col=1)
+        fig.add_trace(go.Scatter(x=xs, y = self.sizes, name='Explanation Size', text=hovertext, hoverinfo='text', line=dict(color='green')), row=1, col=2)
+        fig.add_trace(go.Scatter(x=xs, y = self.errors, name='Error', text=hovertext, hoverinfo='text', line=dict(color='red')), row=2, col=1)
+        fig.add_trace(go.Scatter(x=xs, y = self.probabilities, mode='markers', name='Acceptance Probabilities', text=hovertext, hoverinfo='text', line=dict(color='purple')), row=2, col=2)
 
 
         fig.update_layout(height=1000,
@@ -262,14 +283,14 @@ class Visualisation:
 
     def explanation_heatmap(self):
 
-        target_idx = self.sa.target_idx
+        target_idx = self.target_idx
 
-        num_nodes = np.zeros(len(self.explainer.adj_mx))
+        num_nodes = np.zeros(len(self.adj_mx))
 
-        all_xs, all_ys, _, _ = self.events_to_coords(self.explainer.candidate_events)
+        all_xs, all_ys, _, _ = self.events_to_coords(self.candidate_events)
 
-        for e in self.sa.best_events:
-            e_t, e_idx = self.explainer.events[e].timestamp, self.explainer.events[e].node_idx
+        for e in self.exp_events:
+            e_t, e_idx = self.graph_events[e].timestamp, self.graph_events[e].node_idx
             num_nodes[e_idx] += 1
 
 
@@ -346,18 +367,33 @@ class Visualisation:
                 y=all_ys,
                 mode='markers',
                 name='Explanation Nodes',
-                marker=dict(size=14, color=colours),
+                marker=dict(size=14, color=colours,
+                line=dict(width=1, color='rgba(0,0,0,0.8)')),
                 text=[f"Node: {i} \n  Num Nodes: {n}" for i, n in enumerate(num_nodes)],
                 hoverinfo='text'
             ))
 
             fig.add_trace(go.Scatter(
-                x=[self.x_coords[self.sa.target_idx]],
-                y=[self.y_coords[self.sa.target_idx]],
+                x=self.x_coords,
+                y=self.y_coords,
                 mode='markers',
                 name='Target Node',
-                marker=dict(size=14, color='orange', opacity=0.6),
-                text=f"Node: {self.sa.target_idx}",
+                marker=dict(
+                size=14,
+                color='rgba(0,0,0,0)',  # Transparent fill
+                line=dict(width=1, color='rgba(0,0,0,0.2)')),
+                text=[f"Node: {i}" for i,_ in enumerate(self.x_coords)],
+                hoverinfo='text'
+            ))
+
+            fig.add_trace(go.Scatter(
+                x=[self.x_coords[self.target_idx]],
+                y=[self.y_coords[self.target_idx]],
+                mode='markers',
+                name='Target Node',
+                marker=dict(size=14, color='orange', opacity=0.6,
+                line=dict(width=1, color='rgba(0,0,0,0.8)')),
+                text=f"Node: {self.target_idx}",
                 hoverinfo='text'
             ))
 
@@ -370,13 +406,11 @@ class Visualisation:
 
 
     def exp_temporal_distribution(self):
-        target_idx = self.sa.target_idx
-        num_timestamps = self.explainer.input_window
         node_nums = list(range(len(self.x_coords)))
-        node_timestamps = defaultdict(lambda: np.zeros(self.explainer.input_window))
+        node_timestamps = defaultdict(lambda: np.zeros(self.input_window))
 
-        for e in self.sa.best_events:
-            node_timestamps[self.explainer.events[e].node_idx][self.explainer.events[e].timestamp] = 1
+        for e in self.exp_events:
+            node_timestamps[self.graph_events[e].node_idx][self.graph_events[e].timestamp] = 1
 #
 #    new_data =
 #    nodes = []
@@ -399,13 +433,13 @@ class Visualisation:
             hoverinfo='text',
             showscale=False,  # Hides color scale
             ))
-        if target_idx in node_timestamps.keys():
-            target_row = list(node_timestamps.keys()).index(target_idx)
+        if self.target_idx in node_timestamps.keys():
+            target_row = list(node_timestamps.keys()).index(self.target_idx)
 
 
             fig.add_shape(
             type="rect",
-            x0=-0.5, x1=num_timestamps-0.5,   # span the width of the row
+            x0=-0.5, x1=self.input_window-0.5,   # span the width of the row
             y0=target_row - 0.5, y1=target_row + 0.5,
             line=dict(color="orange", width=2)  # Outline color and width
             )

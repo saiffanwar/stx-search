@@ -1,5 +1,6 @@
 raw_data/METR_LA/
-libcity/cache/dataset_cache/
+raw_data/GRID/
+libcity/cache
 results/
 
 

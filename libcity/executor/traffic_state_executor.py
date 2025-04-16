@@ -297,7 +297,6 @@ class TrafficStateExecutor(AbstractExecutor):
         eval_time = []
         num_batches = len(train_dataloader)
         self._logger.info("num_batches:{}".format(num_batches))
-        self.epochs = 30
 
         for epoch_idx in range(self._epoch_num, self.epochs):
             start_time = time.time()

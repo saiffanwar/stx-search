@@ -15,9 +15,9 @@ import copy
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-t', '--target_node', type=int, default=12, help='Target node index for explanation')
+parser.add_argument('-t', '--target_node', type=int, default=10, help='Target node index for explanation')
 parser.add_argument('-s', '--subgraph_size', type=int, default=50, help='Size of the subgraph for explanation')
-parser.add_argument('-m', '--mode', type=str, default='fidelity', help='Mode for the simulated annealing algorithm')
+parser.add_argument('-m', '--mode', type=str, default='fidelity+size', help='Mode for the simulated annealing algorithm')
 parser.add_argument('-d', '--dataset', type=str, default='GRID', help='Which dataset to use')
 args = parser.parse_args()
 
@@ -83,7 +83,7 @@ app.layout = html.Div(children=[
 def update_graphs(n_clicks):
 #    print(n_intervals)
 #    sa.current_events, sa.current_score = sa.annealing_iteration(sa.current_events, sa.current_score)
-    visualiser.load_result_file()
+    visualiser.reload_result_file()
     exp_graph_fig = visualiser.graph_visualiser()
 
     exp_heatmap_fig = visualiser.explanation_heatmap()
@@ -99,7 +99,7 @@ def update_graphs(n_clicks):
 def update_probs_plot(n_intervals, value):
 
     if value == False:
-        visualiser.load_result_file()
+        visualiser.reload_result_file()
         exp_progression_fig = visualiser.exp_progression()
     else:
         exp_progression_fig = visualiser.exp_progression()
@@ -114,7 +114,7 @@ def update_probs_plot(n_intervals, value):
 if __name__ == '__main__':
 #    while True:
 #        try:
-    app.run(debug=True)
+    app.run(debug=False)
 #        except:
 #            pass
 

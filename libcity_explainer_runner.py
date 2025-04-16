@@ -17,9 +17,10 @@ from libcity.config import ConfigParser
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-m', '--model', type=str, default='TGCN', help='Mode of operation: generate or visualise')
-parser.add_argument('-t', '--target_node', type=int, default=12, help='Target node index for explanation')
+parser.add_argument('-t', '--target_idx', type=int, default=12, help='Target node index for explanation')
 parser.add_argument('-s', '--subgraph_size', type=int, default=50, help='Size of the subgraph for explanation')
 parser.add_argument('-d', '--dataset', type=str, default='METR_LA', help='Dataset name')
+parser.add_argument('--mode', type=str, default='fidelity', help='Explanation Mode')
 args = parser.parse_args()
 
 
@@ -50,8 +51,8 @@ class STX_Search_LibCity:
         self.model_y = self.model.predict(self.data).cpu()
         self.model_y = self.scaler.inverse_transform(self.model_y)
 
-        self.lam = 0.9
-        self.gamma = 0.1
+        self.lam = 0.8
+        self.gamma = 1
 
     def graph_to_events(self):
 
@@ -125,18 +126,18 @@ class STX_Search_LibCity:
 
         return exp_y
 
-    def delta_fidelity(self, exp_events, target_node):
+    def delta_fidelity(self, exp_events, target_idx):
         exp_y = self.exp_prediction(exp_events)
-        target_exp_y = exp_y[0, 0, target_node, 0]
+        target_exp_y = exp_y[0, 0, target_idx, 0]
 
-        target_model_y = self.model_y[0, 0, target_node, 0]
+        target_model_y = self.model_y[0, 0, target_idx, 0]
 
         complement_events = [node for node in self.candidate_events if node not in exp_events]
         complement_masked_input = self.generate_masked_input(complement_events)
 #        complement_masked_input.to_tensor(self.device)
         complement_exp_y = self.model.predict(complement_masked_input).cpu()
         complement_exp_y = self.scaler.inverse_transform(complement_exp_y)
-        target_complement_exp_y = complement_exp_y[0, 0, target_node, 0]
+        target_complement_exp_y = complement_exp_y[0, 0, target_idx, 0]
 
         if abs(target_exp_y - target_model_y) == 0:
             delta_fidelity = np.inf
@@ -145,10 +146,10 @@ class STX_Search_LibCity:
 
 #        print('Model Pred: ', target_model_y, 'Exp Pred: ', target_exp_y, 'Complement Pred: ', target_complement_exp_y, "Delta fidelity: ", delta_fidelity)
 
-        return delta_fidelity, target_complement_exp_y, target_model_y, target_exp_y
+        return delta_fidelity, target_complement_exp_y, target_model_y, exp_y, target_exp_y
 
 
-    def score_func(self, exp_events, target_node, mode='fidelity', d_gam=0.9, d_lam=0.1, max_delta_fidelity=None):
+    def score_func(self, exp_events, target_idx):
         '''
         Calculate the fidelity of the model for a given subgraph. Fidelity is defined using the
         metric proposed in arXiv:2306.05760.
@@ -159,27 +160,19 @@ class STX_Search_LibCity:
         Returns:
             fidelity: The fidelity of the model for the given subgraph.
         '''
-        delta_fidelity, target_complement_exp_y, target_model_y, target_exp_y  = self.delta_fidelity(exp_events, target_node)
+        delta_fidelity, target_complement_exp_y, target_model_y, exp_y, target_exp_y  = self.delta_fidelity(exp_events, target_idx)
 
         exp_absolute_error = abs(target_model_y - target_exp_y)
-        max_exp_size = self.subgraph_size
+        max_exp_size = self.subgraph_size**2
         exp_size_percentage = 100*len(exp_events)/max_exp_size
         exp_percentage_error = 100*abs(exp_absolute_error/target_model_y)
 
-        if mode == 'fidelity':
-#            exp_score = exp_percentage_error
-            exp_score = exp_absolute_error
-#            exp_score = self.delta_fidelity(exp_events, self.target_index)
-        elif mode == 'delta_fidelity':
-            exp_score = delta_fidelity
-        elif mode == 'fidelity+size':
-            lam = self.lam
-            gam = self.gamma
-            exp_score = gam*exp_percentage_error + lam*exp_size_percentage
-#            exp_score =  (delta_fidelity/max_delta_fidelity)+ lam*exp_size_percentage
-        else:
-            RuntimeError('Invalid mode. Choose either fidelity or fidelity+size')
-        return exp_score, exp_absolute_error, target_model_y, target_exp_y, target_complement_exp_y
+        lam = self.lam
+        gam = self.gamma
+        fidelity_size_score = gam*exp_percentage_error + lam*exp_size_percentage
+#        print(exp_percentage_error, exp_size_percentage, fidelity_size_score)
+
+        return exp_absolute_error, fidelity_size_score, delta_fidelity, self.model_y, target_model_y, exp_y, target_exp_y, target_complement_exp_y
 
 
 def plot_explanation(coords, target, exp):
@@ -190,27 +183,24 @@ def plot_explanation(coords, target, exp):
     plt.show()
 
 
+
 if __name__ == '__main__':
 
     with torch.no_grad():
         explainer = STX_Search_LibCity()
 
         explainer.graph_to_events()
-        explainer.set_computation_graph(args.target_node)
+        explainer.set_computation_graph(args.target_idx)
 
         num_iter = 10000
         exp_size = args.subgraph_size
         explainer.subgraph_size = exp_size
 
-        sa = SimulatedAnnealing(args.dataset, args.target_node, explainer.candidate_events, exp_size, score_func=explainer.score_func, verbose=True)
-        score, exp, model_pred, exp_pred = sa.run(iterations=num_iter, expmode='fidelity', explainer=explainer)
-        grid_size = int(len(explainer.adj_mx)**0.5)
-        coords = [[i, j] for i in range(grid_size) for j in range(grid_size)]
-        coords = np.array(coords)
-#        plot_explanation(coords, args.target_node, exp)
+        sa = SimulatedAnnealing(explainer.data['X'].detach().cpu().numpy(), explainer.events, explainer.adj_mx, args.dataset, args.target_idx, explainer.candidate_events, exp_size, score_func=explainer.score_func, verbose=True)
+#        score, exp, model_pred, exp_pred = sa.run(iterations=num_iter, expmode='fidelity')
+        score, exp, model_pred, exp_pred = sa.run(iterations=num_iter, expmode=args.mode)
+#        plot_explanation(coords, args.target_idx, exp)
 
-        with open(f'results/{args.dataset}/best_result_{args.target_node}_{exp_size}_fidelity.pck', 'wb') as f:
-            pck.dump([explainer, sa], f)
 #        score, exp, model_pred, exp_pred = sa.run(iterations=num_iter, expmode='fidelity+size', best_events=exp)
 #        if exp_size == 50:
 #            g_score, g_exp, g_model_pred, g_exp_pred = copy.copy(score), copy.copy(exp), copy.copy(model_pred), copy.copy(exp_pred)
@@ -219,4 +209,4 @@ if __name__ == '__main__':
 
 #        explainer.all_nodes = explainer.generate_graph_nodes(batch['X'])
 #
-#        explainer.target_node = graphNode(explainer.target_index, explainer.target_timestamp, batch['y'][0][explainer.target_timestamp][explainer.target_index][0])
+#        explainer.target_idx = graphNode(explainer.target_index, explainer.target_timestamp, batch['y'][0][explainer.target_timestamp][explainer.target_index][0])
