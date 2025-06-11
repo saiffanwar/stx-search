@@ -64,20 +64,20 @@ class Visualisation:
         self.target_exp_y = results['target_exp_y']
 
     def load_coordinates(self,):
-#        if self.dataset == 'METR_LA':
-            with open(f'visualized_data/{self.dataset}_dyna.json') as json_data:
-                d = json.load(json_data)
-                json_data.close()
+        with open(f'visualized_data/{self.dataset}_dyna.json') as json_data:
+            d = json.load(json_data)
+            json_data.close()
 
-            nodes = d['features']
-            self.x_coords = []
-            self.y_coords = []
-            geo_ids = []
+        nodes = d['features']
+        self.x_coords = []
+        self.y_coords = []
+        geo_ids = []
 
-            for node in nodes:
-                self.x_coords.append(node['geometry']['coordinates'][0])
-                self.y_coords.append(node['geometry']['coordinates'][1])
-                geo_ids.append(node['properties']['geo_id'])
+        for node in nodes:
+            self.x_coords.append(node['geometry']['coordinates'][0])
+            self.y_coords.append(node['geometry']['coordinates'][1])
+            geo_ids.append(node['properties']['geo_id'])
+        print(list(zip(self.x_coords, self.y_coords)))
 
     def generate_plots(self, ):
 
@@ -329,19 +329,19 @@ class Visualisation:
                 hoverinfo='text'
             ))
 
-#    fig.add_trace(go.Scattermapbox(
-#        lat=[ target_y ],
-#        lon=[ target_x ],
-#        name='Target Node',
-#        mode='markers',
-#        marker=go.scattermapbox.Marker(
-#            size=14,
-#            color='orange',
-#            opacity=0.6
-#        ),
-#        text=f"Node: {target_idx} \n  Num Nodes: {target_num_nodes}",
-#        hoverinfo='text'
-#    ))
+            fig.add_trace(go.Scattermapbox(
+                lat=[ self.x_coords[self.target_idx] ],
+                lon=[ self.y_coords[self.target_idx] ],
+                name='Target Node',
+                mode='markers',
+                marker=go.scattermapbox.Marker(
+                    size=14,
+                    color='orange',
+                    opacity=0.6
+                ),
+                text=f"Node: {target_idx} \n  Num Nodes: {num_nodes[self.target_idx]}",
+                hoverinfo='text'
+            ))
 
 
             fig.update_layout(

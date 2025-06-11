@@ -26,16 +26,16 @@ args = parser.parse_args()
 
 class STX_Search_LibCity:
 
-    def __init__(self):
+    def __init__(self, model_name, dataset_name):
         self.task='traffic_state_pred'
-        self.model_name=args.model
-        self.dataset_name=args.dataset
+        self.model_name=model_name
+        self.dataset_name=dataset_name
         self.config_file=None
         self.saved_model=True
         self.train=False
         self.other_args={'exp_id': '1', 'seed': 0}
         self.config = ConfigParser(self.task, self.model_name, self.dataset_name, self.config_file, self.saved_model, self.train, self.other_args)
-        self.config['weight_adj_epsilon'] = 0.000001
+        self.config['weight_adj_epsilon'] = 0.000003
 #        self.device = self.config.get('device', torch.device('cpu'))
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self.input_window = self.config.get('input_window', 3)
@@ -54,13 +54,14 @@ class STX_Search_LibCity:
         self.lam = 0.8
         self.gamma = 1
 
+    class Event:
+        def __init__(self, timestamp, node_idx, value):
+            self.timestamp = timestamp
+            self.node_idx = node_idx
+            self.value = value
+
     def graph_to_events(self):
 
-        class Event:
-            def __init__(self, timestamp, node_idx, value):
-                self.timestamp = timestamp
-                self.node_idx = node_idx
-                self.value = value
 
         rescaled_data = self.scaler.inverse_transform(self.data['X'])
 
@@ -106,7 +107,6 @@ class STX_Search_LibCity:
 
     def set_computation_graph(self, target_idx):
         candidate_events = [target_idx]
-
 
         for neighbour in candidate_events:
             candidate_events.extend(list(np.argwhere(self.adj_mx[neighbour] > 0).flatten()))
@@ -173,7 +173,6 @@ class STX_Search_LibCity:
 #        print(exp_percentage_error, exp_size_percentage, fidelity_size_score)
 
         return exp_absolute_error, fidelity_size_score, delta_fidelity, self.model_y, target_model_y, exp_y, target_exp_y, target_complement_exp_y
-
 
 def plot_explanation(coords, target, exp):
     fig, ax = plt.subplots()

@@ -1,3 +1,11 @@
+*.pt
+tgnnexplainer_src/explainer_ckpts/
+tgnnexplainer_src/dataset/data/*.npy
+tgnnexplainer_src/dataset/data/*.h5
+tgnnexplainer_src/dataset/data/*.csv
+tgnnexplainer_src/dataset/processed/*.npy
+tgnnexplainer_src/saved_mcts_results/
+tgnnexplainer_src/method/params/
 raw_data/METR_LA/
 raw_data/GRID/
 libcity/cache

@@ -979,7 +979,6 @@ class TrafficStateDataset(AbstractDataset):
         # 把训练集的X和y聚合在一起成为list，测试集验证集同理
         # x_train/y_train: (num_samples, input_length, ..., feature_dim)
         # train_data(list): train_data[i]是一个元组，由x_train[i]和y_train[i]组成
-        print(x_train.shape, y_train.shape, x_val.shape, y_val.shape, x_test.shape, y_test.shape)
         train_data = list(zip(x_train, y_train))
         eval_data = list(zip(x_val, y_val))
         test_data = list(zip(x_test, y_test))
