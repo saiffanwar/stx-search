@@ -68,7 +68,7 @@ if args.train_pg_explainer:
                 edge_feat=edge_feat,
                 )
 
-     explainer(event_idxs=[0])
+     explainer(event_idxs=[10, 20, 30, 40, 50, 60, 70, 80, 90, 100],)
 
 #pg_explainer_model, explainer_ckpt_path = PGExplainerExt.expose_explainer_model(
 #                        model_predict_func=libcity_base_explainer.exp_prediction, # load a trained mlp model

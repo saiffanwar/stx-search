@@ -65,7 +65,7 @@ class TGNNExplainer_LibCity:
                 self.value = value
 
 
-        num_hops = 4
+        num_hops = 2
         self.all_events = all_events.copy()
 
         self.node_id_to_idx = pd.unique(self.all_events['u']).tolist()
@@ -102,6 +102,7 @@ class TGNNExplainer_LibCity:
                 new_neighbours.update(src_to_dst.get(node, []))
             neighbouring_nodes.update(new_neighbours)
 
+
 # Filter input_window_events just once
         neighbouring_node_events = self.input_window_events[self.input_window_events['u'].isin(neighbouring_nodes)].copy()
         self.events = []
@@ -112,6 +113,8 @@ class TGNNExplainer_LibCity:
             self.events.append(Event(timestamp, node_idx, value))
 
         self.candidate_events = list(range(len( self.events )))
+#        for e in self.events:
+#            print(e.node_idx, e.timestamp, e.value)
         unique_e_idx = None
 
         return self.candidate_events, unique_e_idx
@@ -206,6 +209,7 @@ class TGNNExplainer_LibCity:
 
     def pg_ext_pred(self, mask_weights):
         # target_model_y should be a tensor and requires_grad=False is fine
+#        print(mask_weights.detach().numpy().flatten())
         target_model_y = self.model_y[0, 0, self.target_event.node_idx, 0]
 
         input = copy.deepcopy(self.data)
@@ -216,7 +220,7 @@ class TGNNExplainer_LibCity:
             event_node_idx = self.events[event].node_idx
             event_mask_weight = mask_weights[e]
 
-            input['X'][0, event_ts, event_node_idx, :] *= event_mask_weight
+            input['X'][0, event_ts, event_node_idx, :] = input['X'][0, event_ts, event_node_idx, :] * event_mask_weight
 
         # Forward pass
         masked_prediction = self.model(input)  # assumes model returns torch.Tensor
