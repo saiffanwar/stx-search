@@ -19,11 +19,13 @@ class Visualisation:
         self.target_idx = target_idx
         self.subgraph_size = subgraph_size
         self.mode = mode
-        self.results_dir = f'results/{self.dataset}/best_result_{self.target_idx}_{self.subgraph_size}_{self.mode}.pck'
+        self.results_dir = f'results/{self.dataset}/best_result_{
+            self.target_idx}_{self.subgraph_size}_{self.mode}.pck'
 
         with open(self.results_dir, 'rb') as f:
             results = pck.load(f)
 
+        self.target_idx = results['target_idx']
         self.x_data = results['x_data']
         self.input_window = results['input_window']
         self.adj_mx = results['adj_mx']
@@ -77,7 +79,6 @@ class Visualisation:
             self.x_coords.append(node['geometry']['coordinates'][0])
             self.y_coords.append(node['geometry']['coordinates'][1])
             geo_ids.append(node['properties']['geo_id'])
-        print(list(zip(self.x_coords, self.y_coords)))
 
     def generate_plots(self, ):
 
@@ -88,11 +89,9 @@ class Visualisation:
 
         return exp_graph_fig, exp_heatmap_fig, exp_progression_fig, exp_temporal_distribution_fig
 
-
     def fetch_layer_edges(self, ):
         weights = self.adj_mx[self.target_idx]
         return edge_weights
-
 
     def events_to_coords(self, events):
         xs, ys, zs = [], [], []
@@ -109,24 +108,26 @@ class Visualisation:
 
         return xs, ys, zs, values
 
-
     def graph_visualiser(self,):
         # Combine the traces into a figure
         fig = make_subplots(rows=1, cols=2, specs=[[{'type': 'scatter3d'}, {'type': 'scatter3d'}]],
-                            subplot_titles=[f'Model Prediction: {self.target_model_y}', f'Explanation Prediction: {self.target_exp_y}'],
+                            subplot_titles=[f'Model Prediction: {
+                                self.target_model_y}', f'Explanation Prediction: {self.target_exp_y}'],
                             vertical_spacing=0,
                             horizontal_spacing=0.05)
 
         plot_axes = [[1, 1], [1, 2]]
 
         events = [self.candidate_events, self.exp_events]
-        data = [[self.candidate_events, self.model_y], [self.exp_events, self.exp_y]]
-        _,_,_, all_values = self.events_to_coords(events[0])
-        min_val = min(min(all_values), min(self.model_y.flatten()), min(self.exp_y.flatten()))
-        max_val = max(max(all_values), max(self.model_y.flatten()), max(self.exp_y.flatten()))
+        data = [[self.candidate_events, self.model_y],
+                [self.exp_events, self.exp_y]]
+        _, _, _, all_values = self.events_to_coords(events[0])
+        min_val = min(min(all_values), min(
+            self.model_y.flatten()), min(self.exp_y.flatten()))
+        max_val = max(max(all_values), max(
+            self.model_y.flatten()), max(self.exp_y.flatten()))
 #    max_val = max(all_values)
         norm = plt.Normalize(vmin=min_val, vmax=max_val)
-
 
         plotting_data_num = 0
         for p, plot_d in enumerate(zip(plot_axes, data)):
@@ -139,11 +140,13 @@ class Visualisation:
                     cmap = plt.cm.get_cmap('Greens')
                     node_idxs = [self.graph_events[e].node_idx for e in d]
                     node_values = [self.graph_events[e].value for e in d]
-                    node_timestamps = [self.graph_events[e].timestamp for e in d]
+                    node_timestamps = [
+                        self.graph_events[e].timestamp for e in d]
                 else:
                     xs = self.x_coords
                     ys = self.y_coords
-                    zs = [self.input_window+1 for _ in range(len(self.x_coords))]
+                    zs = [self.input_window +
+                          1 for _ in range(len(self.x_coords))]
                     node_idxs = list(range(len(self.x_coords)))
                     node_timestamps = zs
                     node_values = d[0, 0, :, 0].flatten()
@@ -163,7 +166,8 @@ class Visualisation:
 
                 # Extract the RGB colors for plotly (plotly needs RGB in the form 'rgb(R,G,B)')
                 node_colors_rgb = [
-                    f'rgb({int(255 * color[0])},{int(255 * color[1])},{int(255 * color[2])})'
+                    f'rgb({int(255 * color[0])},{int(255 *
+                                                     color[1])},{int(255 * color[2])})'
                     for color in node_colors
                 ]
 
@@ -173,7 +177,8 @@ class Visualisation:
                     z=zs,
                     mode='markers',
                     marker=dict(size=5, color=node_colors_rgb, opacity=0.8),
-                    text=[f"Node: {n} \n Timestamp {t} \n Value: {v}" for n,t,v in zip(node_idxs, node_timestamps, node_values)],
+                    text=[f"Node: {n} \n Timestamp {t} \n Value: {
+                        v}" for n, t, v in zip(node_idxs, node_timestamps, node_values)],
                     hoverinfo='text'
                 ), row=row_num, col=col_num)
 
@@ -200,90 +205,92 @@ class Visualisation:
 #                    hoverinfo='none'
 #                ), row=row_num, col=col_num)
 
-
             plotting_data_num += 1
 
             fig.add_trace(go.Scatter3d(
-                x=[ self.x_coords[self.target_idx] ],
-                y=[ self.y_coords[self.target_idx] ],
+                x=[self.x_coords[self.target_idx]],
+                y=[self.y_coords[self.target_idx]],
                 z=[13],
                 mode='markers',
                 marker=dict(size=20, color='orange', opacity=0.8),
-                text=[f"Node: {self.target_idx} \n Timestamp {13} \n Value: {self.model_y[0, 0, self.target_idx, 0]}"],
+                text=[f"Node: {self.target_idx} \n Timestamp {
+                    13} \n Value: {self.model_y[0, 0, self.target_idx, 0]}"],
                 hoverinfo='text'
-                ), row=row_num, col=col_num)
+            ), row=row_num, col=col_num)
 
 # Display the plot
 
         fig.update_layout(
             height=750,
-#        width=1000,
+            #        width=1000,
 
             showlegend=False,
             scene=dict(
                 xaxis=dict(showbackground=False),
                 yaxis=dict(showbackground=False),
                 zaxis=dict(showbackground=False)
-                ),
+            ),
 
             scene2=dict(
                 xaxis=dict(showbackground=False),
                 yaxis=dict(showbackground=False),
                 zaxis=dict(showbackground=False)
-                ),
+            ),
 
             scene3=dict(
                 xaxis=dict(showbackground=False),
                 yaxis=dict(showbackground=False),
                 zaxis=dict(showbackground=False)
-                ),
+            ),
 
             scene4=dict(
                 xaxis=dict(showbackground=False),
                 yaxis=dict(showbackground=False),
                 zaxis=dict(showbackground=False)
-                )
             )
+        )
 
 #    fig.show()
         return fig
 
-
-
     def exp_progression(self, hide_rejected=False):
-#    best_score = sa.best_score
+        #    best_score = sa.best_score
         xs = np.arange(1, len(self.probabilities)+1, 1)
 #    temperatures =  [sa.starting_temperature * (sa.cooling_rate ** i) for i in range(1, len(xs) + 1)]
 #    ys = probabilities
 #    actions = ['Accepted move' if a else 'Rejected' for a in sa.actions]
 
-        hovertext = [f'Probability: {p} <br> Score: {s} <br> Error: {e} <br> Exp Size: {e_s} ' for p, s, e, e_s in zip(self.probabilities, self.scores, self.errors, self.sizes)]
+        hovertext = [f'Probability: {p} <br> Score: {s} <br> Error: {e} <br> Exp Size: {
+            e_s} ' for p, s, e, e_s in zip(self.probabilities, self.scores, self.errors, self.sizes)]
 
+        fig = make_subplots(rows=2, cols=2, shared_xaxes=True, vertical_spacing=0.05, subplot_titles=[
+            'Current Score', 'Explanation Size', 'Error', 'Acceptance Probability'],)
 
-        fig = make_subplots(rows=2, cols=2, shared_xaxes=True, vertical_spacing=0.05, subplot_titles=['Current Score', 'Explanation Size', 'Error', 'Acceptance Probability'],)
-
-        fig.add_trace(go.Scatter(x=xs, y = self.scores, name='Current Score', text=hovertext, hoverinfo='text', line=dict(color='blue')), row=1, col=1)
-        fig.add_trace(go.Scatter(x=xs, y = self.sizes, name='Explanation Size', text=hovertext, hoverinfo='text', line=dict(color='green')), row=1, col=2)
-        fig.add_trace(go.Scatter(x=xs, y = self.errors, name='Error', text=hovertext, hoverinfo='text', line=dict(color='red')), row=2, col=1)
-        fig.add_trace(go.Scatter(x=xs, y = self.probabilities, mode='markers', name='Acceptance Probabilities', text=hovertext, hoverinfo='text', line=dict(color='purple')), row=2, col=2)
-
+        fig.add_trace(go.Scatter(x=xs, y=self.scores, name='Current Score',
+                      text=hovertext, hoverinfo='text', line=dict(color='blue')), row=1, col=1)
+        fig.add_trace(go.Scatter(x=xs, y=self.sizes, name='Explanation Size',
+                      text=hovertext, hoverinfo='text', line=dict(color='green')), row=1, col=2)
+        fig.add_trace(go.Scatter(x=xs, y=self.errors, name='Error', text=hovertext,
+                      hoverinfo='text', line=dict(color='red')), row=2, col=1)
+        fig.add_trace(go.Scatter(x=xs, y=self.probabilities, mode='markers', name='Acceptance Probabilities',
+                      text=hovertext, hoverinfo='text', line=dict(color='purple')), row=2, col=2)
 
         fig.update_layout(height=1000,
-                      legend=dict(
-                        orientation="h",
-                        yanchor="bottom",
-                        y=1.02,
-                        xanchor="right",
-                        x=1
-                    ))
+                          legend=dict(
+                              orientation="h",
+                              yanchor="bottom",
+                              y=1.02,
+                              xanchor="right",
+                              x=1
+                          ))
 #
 #
         return fig
 
-
     def explanation_heatmap(self):
 
         target_idx = self.target_idx
+        print(f'Target Node: {target_idx}')
 
         num_nodes = np.zeros(len(self.adj_mx))
 
@@ -293,25 +300,23 @@ class Visualisation:
             e_t, e_idx = self.graph_events[e].timestamp, self.graph_events[e].node_idx
             num_nodes[e_idx] += 1
 
-
-
         cmap = plt.cm.get_cmap('Greens')
         norm = plt.Normalize(vmin=min(num_nodes), vmax=max(num_nodes))
         node_colours = [cmap(norm(n)) for n in num_nodes]
 
         node_colours_rgb = [
-            f'rgb({int(255 * color[0])},{int(255 * color[1])},{int(255 * color[2])})'
+            f'rgb({int(255 * color[0])},{int(255 *
+                                             color[1])},{int(255 * color[2])})'
             for color in node_colours
         ]
         fig = go.Figure()
 
-        mask = [True if n > 0  else False for n in num_nodes]
+        mask = [True if n > 0 else False for n in num_nodes]
 
-        all_ys = [y for y,m in zip(all_ys, mask) if m]
-        all_xs = [x for x,m in zip(all_xs, mask) if m]
-        colours = [c for c,m in zip(node_colours_rgb, mask) if m]
+        all_ys = [y for y, m in zip(all_ys, mask) if m]
+        all_xs = [x for x, m in zip(all_xs, mask) if m]
+        colours = [c for c, m in zip(node_colours_rgb, mask) if m]
 #    subgraph_nodes = [n for n,m in zip(all_subgraph_nodes, mask) if m]
-
 
         num_nodes = [n for n in num_nodes if n > 0]
 
@@ -325,13 +330,14 @@ class Visualisation:
                     size=14,
                     color=colours,
                 ),
-                text=[f"Node: {i} \n  Num Nodes: {n}" for i, n in enumerate(num_nodes)],
+                text=[f"Node: {i} \n  Num Nodes: {
+                    n}" for i, n in enumerate(num_nodes)],
                 hoverinfo='text'
             ))
 
             fig.add_trace(go.Scattermapbox(
-                lat=[ self.x_coords[self.target_idx] ],
-                lon=[ self.y_coords[self.target_idx] ],
+                lat=[self.x_coords[self.target_idx]],
+                lon=[self.y_coords[self.target_idx]],
                 name='Target Node',
                 mode='markers',
                 marker=go.scattermapbox.Marker(
@@ -339,13 +345,13 @@ class Visualisation:
                     color='orange',
                     opacity=0.6
                 ),
-                text=f"Node: {target_idx} \n  Num Nodes: {num_nodes[self.target_idx]}",
+                text=f"Node: {target_idx} \n  Num Nodes: {
+                    num_nodes[self.target_idx]}",
                 hoverinfo='text'
             ))
 
-
             fig.update_layout(
-#        mapbox_style="satellite-streets",
+                #        mapbox_style="satellite-streets",
                 title="Spatial Distribution of Nodes in Explanation",
                 hovermode='closest',
                 mapbox=dict(
@@ -368,8 +374,9 @@ class Visualisation:
                 mode='markers',
                 name='Explanation Nodes',
                 marker=dict(size=14, color=colours,
-                line=dict(width=1, color='rgba(0,0,0,0.8)')),
-                text=[f"Node: {i} \n  Num Nodes: {n}" for i, n in enumerate(num_nodes)],
+                            line=dict(width=1, color='rgba(0,0,0,0.8)')),
+                text=[f"Node: {i} \n  Num Nodes: {
+                    n}" for i, n in enumerate(num_nodes)],
                 hoverinfo='text'
             ))
 
@@ -379,10 +386,10 @@ class Visualisation:
                 mode='markers',
                 name='Target Node',
                 marker=dict(
-                size=14,
-                color='rgba(0,0,0,0)',  # Transparent fill
-                line=dict(width=1, color='rgba(0,0,0,0.2)')),
-                text=[f"Node: {i}" for i,_ in enumerate(self.x_coords)],
+                    size=14,
+                    color='rgba(0,0,0,0)',  # Transparent fill
+                    line=dict(width=1, color='rgba(0,0,0,0.2)')),
+                text=[f"Node: {i}" for i, _ in enumerate(self.x_coords)],
                 hoverinfo='text'
             ))
 
@@ -392,7 +399,7 @@ class Visualisation:
                 mode='markers',
                 name='Target Node',
                 marker=dict(size=14, color='orange', opacity=0.6,
-                line=dict(width=1, color='rgba(0,0,0,0.8)')),
+                            line=dict(width=1, color='rgba(0,0,0,0.8)')),
                 text=f"Node: {self.target_idx}",
                 hoverinfo='text'
             ))
@@ -403,7 +410,6 @@ class Visualisation:
             )
 
         return fig
-
 
     def exp_temporal_distribution(self):
         node_nums = list(range(len(self.x_coords)))
@@ -429,19 +435,19 @@ class Visualisation:
         fig = go.Figure(data=go.Heatmap(
             z=list(node_timestamps.values()),
             colorscale='Greens',  # White for 0, Black for 1
-            text=[[f"Node: {k}" for _ in range(len(v))] for k, v in node_timestamps.items()],
+            text=[[f"Node: {k}" for _ in range(len(v))]
+                  for k, v in node_timestamps.items()],
             hoverinfo='text',
             showscale=False,  # Hides color scale
-            ))
+        ))
         if self.target_idx in node_timestamps.keys():
             target_row = list(node_timestamps.keys()).index(self.target_idx)
 
-
             fig.add_shape(
-            type="rect",
-            x0=-0.5, x1=self.input_window-0.5,   # span the width of the row
-            y0=target_row - 0.5, y1=target_row + 0.5,
-            line=dict(color="orange", width=2)  # Outline color and width
+                type="rect",
+                x0=-0.5, x1=self.input_window-0.5,   # span the width of the row
+                y0=target_row - 0.5, y1=target_row + 0.5,
+                line=dict(color="orange", width=2)  # Outline color and width
             )
 
         fig.update_layout(
