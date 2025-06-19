@@ -530,9 +530,9 @@ class TGNNExplainer(BaseExplainerTG):
         else:
             raise NotImplementedError('Wrong explanaion level')
 
-        explanation_results = {e: {'important_events': [], 'target_model_y': [
-        ], 'exp_pred': [], 'unimportant_pred': [], 'delta_fidelity': []} for e in exp_sizes}
-        # if len(self.candidate_events) > max(exp_sizes):
+        explanation_results = {'important_events': [], 'target_model_y': [
+            # if len(self.candidate_events) > max(exp_sizes):
+        ], 'exp_pred': []}
         # for exp_size in exp_sizes:
         tree_node_x = find_best_node_result(
             tree_nodes, self.min_atoms, self.computation_graph_events)
@@ -559,15 +559,16 @@ class TGNNExplainer(BaseExplainerTG):
 
         if self.debug_mode:
             print_nodes(tree_nodes)
+        target_model_y, exp_pred = self.libcity_base_explainer.tgnne_score_func(
+            tree_node_x.coalition)
+        explanation_results['important_events'] = tree_node_x.coalition
+        explanation_results['target_model_y'] = target_model_y
+        explanation_results['exp_pred'] = exp_pred
+        with open(f'results/tgnnexplainer_{self.model_name}_{self.dataset_name}_{event_idx}_{self.min_atoms}.pkl', 'wb') as f:
+            pck.dump(explanation_results, f)
 
-            # explanation_results[exp_size]['important_events'] = important_events
-            # explanation_results[exp_size]['target_model_y'] = target_model_y
-            # explanation_results[exp_size]['exp_pred'] = exp_pred
-            # explanation_results[exp_size]['unimportant_pred'] = unimportant_pred
-            # explanation_results[exp_size]['delta_fidelity'] = delta_fidelity
-            #
-            # print('Exp Len: ', len(important_events), 'Model Pred: ', target_model_y, 'Exp Pred: ',
-            #       exp_pred, 'Unimportant Pred', unimportant_pred, 'Delta Fidelity: ', delta_fidelity)
+        # print('Exp Len: ', len(important_events), 'Model Pred: ', target_model_y, 'Exp Pred: ',
+        #       exp_pred, 'Unimportant Pred', unimportant_pred, 'Delta Fidelity: ', delta_fidelity)
 
         # return explanation_results
 
@@ -700,54 +701,17 @@ class TGNNExplainer(BaseExplainerTG):
         if isinstance(event_idxs, int):
             event_idxs = [event_idxs]
 
-#        exp_sizes = [10,20,30, 40, 50, 60, 70, 80, 90, 100]
-        exp_sizes = [10, 25, 50, 75, 100]
-        results_dict = {e: {'target_event_idxs': [], 'explanations': [], 'explanation_predictions': [
-        ], 'model_predictions': [], 'unimportant_predictions': [], 'delta_fidelity': []} for e in exp_sizes}
-        rb = [str(results_batch) if results_batch is not None else ''][0]
-        print(f'Running results batch {rb} with {len(event_idxs)} events')
-
         for i, event_idx in enumerate(event_idxs):
             #            try:
-            print(f'\nexplain {i}-th: {event_idx} on batch {rb}')
 
             self.libcity_base_explainer = TGNNExplainer_LibCity(
                 self.model_name, self.dataset_name)
             self._initialize(event_idx)
 
-            if self.load_results:
-                tree_nodes, tree_node_x = self._load_saved_nodes_info(
-                    event_idx)
-            else:
-                explanation_results = self.explain(
-                    event_idx=event_idx)
-#                self._save_mcts_recorder(event_idx) # always store
-#                if self.save and not self.load_results: # sometimes store
-#                    self._save_mcts_nodes_info(tree_nodes, event_idx)
-            if explanation_results is not None:
-                for e in exp_sizes:
-                    results_dict[e]['target_event_idxs'].append(event_idx)
-                    results_dict[e]['explanations'].append(
-                        explanation_results[e]['important_events'])
-                    results_dict[e]['model_predictions'].append(
-                        explanation_results[e]['target_model_y'])
-                    results_dict[e]['explanation_predictions'].append(
-                        explanation_results[e]['exp_pred'])
-                    results_dict[e]['unimportant_predictions'].append(
-                        explanation_results[e]['unimportant_pred'])
-                    results_dict[e]['delta_fidelity'].append(
-                        explanation_results[e]['delta_fidelity'])
-
-
-#                print(results_dict)
-                with open(results_dir + f'/intermediate_results/tgnne_results_{self.dataset_name}_{self.model_name}_{rb}.pkl', 'wb') as f:
-                    pck.dump(results_dict, f)
-#            except:
-#                pass
-
-        import time
-        with open(results_dir + f'/intermediate_results/tgnne_results_{self.dataset_name}_{self.model_name}_{rb}.pkl', 'wb') as f:
-            pck.dump(results_dict, f)
+            # if self.load_results:
+            #     tree_nodes, tree_node_x = self._load_saved_nodes_info(
+            #         event_idx)
+            self.explain(event_idx=event_idx)
 
     def _to_device(self, device):
         pass

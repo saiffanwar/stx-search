@@ -1,3 +1,6 @@
+from stx_search_explainer import STX_Search_LibCity
+from tgnnexplainer_src.method.tgnnexplainer import TGNNExplainer
+from tgnnexplainer_src.method.other_baselines_tg import PGExplainerExt
 import random
 import torch
 import pandas as pd
@@ -8,11 +11,6 @@ import time
 import os
 import sys
 sys.path.append(os.getcwd() + '/tgnnexplainer_src')
-
-from tgnnexplainer_src.method.other_baselines_tg import PGExplainerExt
-from tgnnexplainer_src.method.tgnnexplainer import TGNNExplainer
-
-from stx_search_explainer import STX_Search_LibCity
 
 
 parser = argparse.ArgumentParser()
@@ -28,7 +26,7 @@ parser.add_argument('--stx_mode', type=str, default='fidelity',
                     help='Explanation Mode')
 parser.add_argument('--explainer', type=str, default='stx_search',
                     help='Explainer to use: stx_search, tgnnexplainer or pg_explainer')
-parser.add_argument('--num_exps', type=int, default=10, 
+parser.add_argument('--num_exps', type=int, default=10,
                     help='Number of events to explain')
 args = parser.parse_args()
 
@@ -45,7 +43,8 @@ if args.explainer == 'stx_search':
         explainer = STX_Search_LibCity(
             args.model, args.dataset, all_events=events)
         for event_idx in events_to_explain:
-            print(f'######################## Explaining event {event_idx} using STX Search ########################')
+            print(f'######################## Explaining event {
+                  event_idx} using STX Search ########################')
 
             num_iter = 10000
 
@@ -57,7 +56,7 @@ elif args.explainer in ['pg_explainer', 'tgnnexplainer']:
 
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     edge_feat = pd.read_csv(
-    f'raw_data/{args.dataset}/ml_{args.dataset}_edge_feats.csv')
+        f'raw_data/{args.dataset}/ml_{args.dataset}_edge_feats.csv')
 
     explainer = PGExplainerExt(
         model_name=args.model,
@@ -80,7 +79,6 @@ elif args.explainer in ['pg_explainer', 'tgnnexplainer']:
     if args.explainer == 'pg_explainer':
         explainer(event_idxs=events_to_explain,)
 
-
     elif args.explainer == 'tgnnexplainer':
         pg_explainer_model, explainer_ckpt_path = PGExplainerExt.expose_explainer_model(
             model_name=args.model,
@@ -89,7 +87,7 @@ elif args.explainer in ['pg_explainer', 'tgnnexplainer']:
             ckpt_dir='saved/models/PGE_models/',
             device=device,
         )
-
+        c_puct = 10
         explainer = TGNNExplainer(model_name=args.model,
                                   explainer_name='tgnnexplainer',
                                   dataset_name=args.dataset,
@@ -101,7 +99,7 @@ elif args.explainer in ['pg_explainer', 'tgnnexplainer']:
                                   c_puct=c_puct,
                                   pg_explainer_model=pg_explainer_model,
                                   edge_feat=edge_feat,
-                                  candidate_events_num=200,
+                                  candidate_events_num=100,
                                   )
 
         explainer(event_idxs=events_to_explain)
