@@ -524,8 +524,7 @@ class TGNNExplainer(BaseExplainerTG):
                 # print(f'{len(self.candidate_events)} candicate events:', self.mcts_state_map.candidate_events)
             tree_nodes = self.mcts_state_map.mcts(
                 verbose=self.verbose)  # search
-            print(f"Total number of nodes explored: {
-                  len(self.mcts_state_map.state_map)}")
+            print(f"Total number of nodes explored: {len(self.mcts_state_map.state_map)}")
 
         else:
             raise NotImplementedError('Wrong explanaion level')
@@ -537,8 +536,7 @@ class TGNNExplainer(BaseExplainerTG):
         tree_node_x = find_best_node_result(
             tree_nodes, self.min_atoms, self.computation_graph_events)
 
-        print(f'Best Exp Score: {
-            tree_node_x.P}, Exp Size: {len(tree_node_x.coalition)}')
+        print(f'Best Exp Score: {tree_node_x.P}, Exp Size: {len(tree_node_x.coalition)}')
         # important_events = tree_node_x.coalition
         # exp_fidelity_inv, exp_pred = self.tgnn_reward_wraper(
         #     important_events, event_idx, final_result=True)
@@ -591,8 +589,7 @@ class TGNNExplainer(BaseExplainerTG):
     def _mcts_recorder_path(result_dir, model_name, dataset_name, event_idx, suffix):
         if suffix is not None:
             record_filename = result_dir / \
-                f'{model_name}_{dataset_name}_{
-                    event_idx}_mcts_recorder_{suffix}.csv'
+                f'{model_name}_{dataset_name}_{event_idx}_mcts_recorder_{suffix}.csv'
         else:
             record_filename = result_dir / \
                 f'{model_name}_{dataset_name}_{event_idx}_mcts_recorder.csv'

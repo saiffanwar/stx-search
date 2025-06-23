@@ -121,8 +121,7 @@ class BaseExplainerTG(object):
         # import ipdb; ipdb.set_trace()
 
         if self.debug_mode:
-            print(f'{len(unique_e_idx)} seen events, used {
-                  len(candidate_events)} as candidates:')
+            print(f'{len(unique_e_idx)} seen events, used {len(candidate_events)} as candidates:')
             print(candidate_events)
 #
         return candidate_events, unique_e_idx
@@ -179,8 +178,7 @@ class BaseExplainerTG(object):
         only for baseline explainer, save their computed candidate scores.
         """
         score_filename = results_dir / \
-            f'{model_name}_{dataset_name}_{explainer_name}_{
-                event_idx}_candidate_scores.csv'
+            f'{model_name}_{dataset_name}_{explainer_name}_{event_idx}_candidate_scores.csv'
         return score_filename
 
     def _save_candidate_scores(self, candidate_weights, event_idx):

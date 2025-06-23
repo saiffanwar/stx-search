@@ -37,14 +37,14 @@ events['e_idx'] = events.index
 random.seed(42)
 
 events_to_explain = random.sample(list(events['e_idx']), args.num_exps)
+print(events_to_explain)
 
 if args.explainer == 'stx_search':
     with torch.no_grad():
         explainer = STX_Search_LibCity(
             args.model, args.dataset, all_events=events)
         for event_idx in events_to_explain:
-            print(f'######################## Explaining event {
-                  event_idx} using STX Search ########################')
+            print(f'######################## Explaining event {event_idx} using STX Search ########################')
 
             num_iter = 10000
 
@@ -94,7 +94,7 @@ elif args.explainer in ['pg_explainer', 'tgnnexplainer']:
                                   all_events=events,
                                   explanation_level='event',
                                   device=device,
-                                  rollout=100,
+                                  rollout=200,
                                   min_atoms=args.exp_size,
                                   c_puct=c_puct,
                                   pg_explainer_model=pg_explainer_model,

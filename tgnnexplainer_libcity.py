@@ -38,9 +38,7 @@ class TGNNExplainer_LibCity:
 
         self.data_feature, self.train_data, self.valid_data, self.test_data = self.load_data()
         self.scaler = self.data_feature['scaler']
-        model_path = os.getcwd() + \
-            f'/libcity/cache/1/model_cache/{
-                self.model_name}_{self.dataset_name}.m'
+        model_path = os.getcwd() + f'/libcity/cache/1/model_cache/{self.model_name}_{self.dataset_name}.m'
         self.model = self.load_model(model_path, self.data_feature)
         self.adj_mx = self.data_feature['adj_mx']
 

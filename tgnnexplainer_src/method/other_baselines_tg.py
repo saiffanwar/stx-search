@@ -351,8 +351,7 @@ class PGExplainerExt(BaseExplainerTG):
             ckpt_save_path = self._ckpt_path(
                 self.explainer_ckpt_dir, self.model_name, self.dataset_name, self.explainer_name, epoch=e)
             torch.save(state_dict, ckpt_save_path)
-            tqdm.write(f"epoch {e} loss epoch {np.mean(loss_list)}, skipped: {
-                       skipped_num}, ckpt saved: {ckpt_save_path}")
+            tqdm.write(f"epoch {e} loss epoch {np.mean(loss_list)}, skipped: {skipped_num}, ckpt saved: {ckpt_save_path}")
             with open('results/training_results/pge_losses.pkl', 'wb') as f:
                 pck.dump(epoch_losses, f)
 
