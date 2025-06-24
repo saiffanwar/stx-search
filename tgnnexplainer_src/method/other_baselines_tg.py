@@ -100,7 +100,7 @@ class PGExplainerExt(BaseExplainerTG):
     def __init__(self, model_name: str, explainer_name: str, dataset_name: str,
                  all_events: DataFrame,  explanation_level: str, device, verbose: bool = True, results_dir=None, debug_mode=True,
                  # specific params for PGExplainerExt
-                 train_epochs: int = 50, explainer_ckpt_dir=None, reg_coefs=None, batch_size=64, lr=1e-3, exp_size=20, edge_feat=None, input_window=None
+                 train_epochs: int = 50, explainer_ckpt_dir=None, reg_coefs=None, batch_size=64, lr=1e-3, exp_size=20, edge_feat=None, input_window=None, retrain_explainer=False
                  ):
         super(PGExplainerExt, self).__init__(
             model_name=model_name,
@@ -122,6 +122,7 @@ class PGExplainerExt(BaseExplainerTG):
         self.lr = lr
         self.expl_input_dim = None
         self.exp_size = exp_size
+        self.retrain_explainer = retrain_explainer
         self._init_explainer()
 
     @staticmethod
@@ -158,13 +159,10 @@ class PGExplainerExt(BaseExplainerTG):
     def __call__(self, node_idxs: Union[int, None] = None, event_idxs: Union[int, None] = None, results_batch=None):
         self.explainer_ckpt_path = self._ckpt_path(
             self.explainer_ckpt_dir, self.model_name, self.dataset_name, self.explainer_name)
-        print(self.results_dir)
         self.explain_event_idxs = event_idxs
 
-        retrain = not self.explainer_ckpt_path.exists()
-        retrain = True
         # NOTE: set retrain to True for now, since we do not have a pre-trained explainer model.
-        if retrain:
+        if self.retrain_explainer or not self.explainer_ckpt_path.exists():
             self._train()  # we need to train the explainer first
         else:
             print(f'Loading pretrained model')
@@ -173,48 +171,27 @@ class PGExplainerExt(BaseExplainerTG):
             self.explainer_model.load_state_dict(state_dict)
 
         rb = [str(results_batch) if results_batch is not None else ''][0]
-        exp_sizes = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
-        pg_results = {s: {'target_event_idxs': [], 'explanations': [], 'explanation_predictions': [
-        ], 'model_predictions': [], 'delta_fidelity': []} for s in exp_sizes}
-        filename = f'/pg_results_{self.dataset_name}_{self.model_name}_{rb}'
+        exp_sizes = [20, 50, 75, 100]
 
-        for i, event_idx in enumerate(event_idxs):
-            print(f'\nexplain {i}-th: {event_idx}')
-            self.libcity_base_explainer = TGNNExplainer_LibCity(
-                self.model_name, self.dataset_name)
-            self._initialize(event_idx, self.libcity_base_explainer)
-#            if len(self.computation_graph_events) <= 100:
-#                continue
-#            for exp_size in exp_sizes:
-            self.candidate_events = self.computation_graph_events
-            exp_error, event_weights = self.explain(event_idx=event_idx)
-            print(exp_error)
-#                exp_pred = exp_pred.cpu().detach().numpy().flatten()[0]
-#                model_pred = model_pred.cpu().detach().numpy().flatten()[0]
-#                complement_pred = complement_pred.cpu().detach().numpy().flatten()[0]
-#                pg_results[exp_size]['target_event_idxs'].append(event_idx)
-#                pg_results[exp_size]['explanations'].append(exp_events)
-#                pg_results[exp_size]['explanation_predictions'].append(exp_pred)
-#                pg_results[exp_size]['model_predictions'].append(model_pred)
-#
-#                if abs(exp_pred - model_pred) == 0:
-#                    delta_fidelity = np.inf
-#                else:
-#                    delta_fidelity = abs(complement_pred - model_pred)/abs(exp_pred - model_pred)
-#                pg_results[exp_size]['delta_fidelity'].append(delta_fidelity)
-#
-#                print(f'Event idx: {event_idx}, exp_size: {exp_size}, exp_pred: {exp_pred}, model_pred: {model_pred}, complement_pred: {complement_pred}, delta_fidelity: {delta_fidelity}')
+        # Gathering explanation results
+        for exp_size in exp_sizes:
+            for i, event_idx in enumerate(event_idxs):
+                print(f'\nexplain {i}-th: {event_idx}')
+                self.libcity_base_explainer = TGNNExplainer_LibCity(
+                    self.model_name, self.dataset_name)
+                self._initialize(event_idx, self.libcity_base_explainer)
+    #            if len(self.computation_graph_events) <= 100:
+    #                continue
+    #            for exp_size in exp_sizes:
+                self.candidate_events = self.computation_graph_events
+                target_model_y, target_exp_y, exp_error, event_weights = self.explain(event_idx=event_idx, exp_size=exp_size)
 
-#        for exp_size in exp_sizes:
-#            print(f'exp_size: {exp_size}, delta_fidelity: {np.mean(pg_results[exp_size]["delta_fidelity"])}')
-#            errors = [abs(pg_results[exp_size]['explanation_predictions'][i] - pg_results[exp_size]['model_predictions'][i]) for i in range(len(pg_results[exp_size]['explanation_predictions']))]
-#            print(f'exp_size: {exp_size}, avg_error: {np.mean(errors)}')
-#
-#        with open(str(self.results_dir)+f'/{filename}.pkl', 'wb') as f:
-#            pck.dump(pg_results, f)
-#
-        # import ipdb; ipdb.set_trace()
-        return pg_results
+                explanation_results = {'target_model_y': [
+                ], 'exp_pred': []}
+                explanation_results['target_model_y'] = target_model_y
+                explanation_results['exp_pred'] = target_exp_y
+                with open(f'results/{self.dataset_name}/pg_explainer/pg_explainer{self.model_name}_{self.dataset_name}_{event_idx}_{exp_size}.pkl', 'wb') as f:
+                    pck.dump(explanation_results, f)
 
     def _tg_predict(self, event_idx, use_explainer=True, exp_size=None):
         #        if self.model_name in ['tgat', 'tgn']:
@@ -236,7 +213,6 @@ class PGExplainerExt(BaseExplainerTG):
 
             # import ipdb; ipdb.set_trace()
             edge_weights = self.explainer_model(input_expl)
-            print('Model Prediction: ', edge_weights.shape, edge_weights.device)
             candidate_weights_dict = {'candidate_events': torch.tensor(self.candidate_events, dtype=torch.int64, device=self.device),
                                       'edge_weights': edge_weights,
                                       }
@@ -246,9 +222,9 @@ class PGExplainerExt(BaseExplainerTG):
 #        # NOTE: use the 'src_ngh_eidx_batch' in module to locate mask fill positions
 #            output = self.model.get_prob( src_idx_l, target_idx_l, cut_time_l, logit=True, candidate_weights_dict=candidate_weights_dict)
 
-        error = self.libcity_base_explainer.pg_ext_pred(edge_weights)
+        error, target_model_y, target_exp_y = self.libcity_base_explainer.pg_ext_pred(edge_weights)
 
-        return error, edge_weights
+        return target_model_y, target_exp_y, error, edge_weights
 #        else:
 #            raise NotImplementedError
 
@@ -324,7 +300,7 @@ class PGExplainerExt(BaseExplainerTG):
 
 #                original_pred, mask_values_ = self._tg_predict(event_idx, use_explainer=False)
 #                masked_pred, mask_values,_, _ = self._tg_predict(event_idx, use_explainer=True, exp_size=100)
-                id_loss, mask_values = self._tg_predict(
+                _, _, id_loss, mask_values = self._tg_predict(
                     event_idx, use_explainer=True, exp_size=100)
                 loss += id_loss.type(torch.float32)
 
@@ -362,25 +338,20 @@ class PGExplainerExt(BaseExplainerTG):
 
     def explain(self, node_idx=None, event_idx=None, exp_size=None):
         self.explainer_model.eval()
-        # input_expl = _create_explainer_input(
-        #     self.libcity_base_explainer.target_event, self.libcity_base_explainer.events, self.device)
-        _, event_idx_scores = self._tg_predict(event_idx)
+        target_model_y, target_exp_y, exp_error, event_weights = self._tg_predict(
+            event_idx, use_explainer=True, exp_size=exp_size)
 
-        # event_idx_scores = self.explainer_model(
-        #     input_expl)  # compute importance scores
-        event_idx_scores = event_idx_scores.cpu().detach().numpy().flatten()
+        event_weights = event_weights.cpu().detach().numpy().flatten()
 
         # the same as Attn explainer
-        candidate_weights = {self.candidate_events[i]: event_idx_scores[i] for i in range(
+        candidate_weights = {self.candidate_events[i]: event_weights[i] for i in range(
             len(self.candidate_events))}
         candidate_weights = dict(sorted(candidate_weights.items(
         ), key=lambda x: x[1], reverse=True))  # NOTE: descending, important
-#        model_pred, _ = self._tg_predict(event_idx, use_explainer=True)
-        exp_error, edge_weights = self._tg_predict(
-            event_idx, use_explainer=True, exp_size=exp_size)
-#        print(f'event_idx: {event_idx}, candidate_weights: {candidate_weights}')
 
-        return exp_error, edge_weights
+
+
+        return target_model_y, target_exp_y, exp_error, event_weights
 
     @staticmethod
     def expose_explainer_model(model_name, explainer_name, dataset_name, ckpt_dir, device):

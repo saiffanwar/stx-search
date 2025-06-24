@@ -207,7 +207,7 @@ class TGNNExplainer_LibCity:
         # print('Score: ', fidelity_score)
         return fidelity_score, target_exp_y
 
-    def pg_ext_pred(self, mask_weights):
+    def pg_ext_pred(self, mask_weights, exp_size=20):
         # target_model_y should be a tensor and requires_grad=False is fine
         #        print(mask_weights.detach().numpy().flatten())
 
@@ -218,12 +218,21 @@ class TGNNExplainer_LibCity:
 
         modified_X = source_X.clone()
 
+
+        if exp_size is not None:
+            values, indices = torch.topk(mask_weights.view(-1), exp_size)
+            indices = indices.cpu().numpy()
+
         for e, event in enumerate(self.candidate_events):
             event_ts = self.events[event].timestamp
             event_node_idx = self.events[event].node_idx
             event_mask_weight = mask_weights[e]
-            modified_X[0, event_ts, event_node_idx, :] = source_X[0,
+            if e in indices:
+                modified_X[0, event_ts, event_node_idx, :] = source_X[0,
                                                                   event_ts, event_node_idx, :] * event_mask_weight
+            else:
+                modified_X[0, event_ts, event_node_idx, :] = source_X[0,
+                                                                  event_ts, event_node_idx, :] * 0.0
 
         input_data['X'] = modified_X
 
@@ -241,13 +250,13 @@ class TGNNExplainer_LibCity:
             base_pred = self.model(self.data)
         target_model_y = base_pred[0, 0, self.target_event.node_idx, 0]
 
-        print("Target Model Y: ", target_model_y,
-              "Target Masked Exp Y: ", target_masked_exp_y)
+        print("Target Model Y: ", target_model_y.item(),
+              "Target Masked Exp Y: ", target_masked_exp_y.item())
 
-        print(f'SUM OF WEIGHTS: {torch.sum(torch.abs(mask_weights))}')
         fidelity_score = torch.nn.functional.mse_loss(
             target_masked_exp_y, target_model_y)+0.0001*torch.sum(torch.abs(mask_weights))
 
-        print("Fidelity Score: ", fidelity_score)
+        print("Fidelity Score: ", fidelity_score.item())
 
-        return fidelity_score
+        return fidelity_score, target_model_y, target_masked_exp_y
+

@@ -37,7 +37,8 @@ events['e_idx'] = events.index
 random.seed(42)
 
 events_to_explain = random.sample(list(events['e_idx']), args.num_exps)
-print(events_to_explain)
+# events_to_explain = events_to_explain
+print(f'Events to explain: {events_to_explain}')
 
 if args.explainer == 'stx_search':
     with torch.no_grad():
@@ -74,6 +75,7 @@ elif args.explainer in ['pg_explainer', 'tgnnexplainer']:
         debug_mode=False,
         exp_size=args.exp_size,
         edge_feat=edge_feat,
+        retrain_explainer=False,
     )
 
     if args.explainer == 'pg_explainer':
