@@ -53,7 +53,7 @@ class MCTS:
         self.best_exp = None
         self.best_exp_reward = unvisited_reward
         self.leaves = []
-        self.results_dir = 'results/METR_LA/'
+        self.results_dir = 'results/PEMS_BAY/'
 
         self.all_event_graph_nodes = {e: event for e, event in enumerate(self.explainer.candidate_events)}
         self.all_event_indices = [e for e in range(len(self.explainer.candidate_events))]

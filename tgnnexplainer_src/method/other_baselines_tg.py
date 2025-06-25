@@ -163,6 +163,12 @@ class PGExplainerExt(BaseExplainerTG):
 
         # NOTE: set retrain to True for now, since we do not have a pre-trained explainer model.
         if self.retrain_explainer or not self.explainer_ckpt_path.exists():
+            ckpt_save_path = self._ckpt_path(
+                self.explainer_ckpt_dir, self.model_name, self.dataset_name, self.explainer_name, epoch=32)
+            print(ckpt_save_path)
+            state_dict = torch.load(
+                ckpt_save_path, map_location=self.device)
+            self.explainer_model.load_state_dict(state_dict)
             self._train()  # we need to train the explainer first
         else:
             print(f'Loading pretrained model')
@@ -174,8 +180,8 @@ class PGExplainerExt(BaseExplainerTG):
         exp_sizes = [20, 50, 75, 100]
 
         # Gathering explanation results
-        for exp_size in exp_sizes:
-            for i, event_idx in enumerate(event_idxs):
+        for i, event_idx in enumerate(event_idxs):
+            for exp_size in exp_sizes:
                 print(f'\nexplain {i}-th: {event_idx}')
                 self.libcity_base_explainer = TGNNExplainer_LibCity(
                     self.model_name, self.dataset_name)
@@ -190,6 +196,7 @@ class PGExplainerExt(BaseExplainerTG):
                 ], 'exp_pred': []}
                 explanation_results['target_model_y'] = target_model_y
                 explanation_results['exp_pred'] = target_exp_y
+
                 with open(f'results/{self.dataset_name}/pg_explainer/pg_explainer{self.model_name}_{self.dataset_name}_{event_idx}_{exp_size}.pkl', 'wb') as f:
                     pck.dump(explanation_results, f)
 
@@ -222,7 +229,7 @@ class PGExplainerExt(BaseExplainerTG):
 #        # NOTE: use the 'src_ngh_eidx_batch' in module to locate mask fill positions
 #            output = self.model.get_prob( src_idx_l, target_idx_l, cut_time_l, logit=True, candidate_weights_dict=candidate_weights_dict)
 
-        error, target_model_y, target_exp_y = self.libcity_base_explainer.pg_ext_pred(edge_weights)
+        error, target_model_y, target_exp_y = self.libcity_base_explainer.pg_ext_pred(edge_weights, exp_size=exp_size)
 
         return target_model_y, target_exp_y, error, edge_weights
 #        else:
@@ -277,8 +284,12 @@ class PGExplainerExt(BaseExplainerTG):
         # train_e_idxs = np.random.randint(int(len(self.all_events)*0.2), int(len(self.all_events)*0.6), (2000, )) # NOTE: set train event idxs
 
         all_losses = []
-        epoch_losses = []
-        for e in range(self.train_epochs):
+        with open(f'results/training_results/pge_losses.pkl', 'rb') as f:
+            epoch_losses = pck.load(f)
+        print(epoch_losses)
+
+        # epoch_losses = []
+        for e in range(33, self.train_epochs):
             train_e_idxs = self._obtain_train_idxs()
 
             optimizer.zero_grad()
@@ -301,7 +312,7 @@ class PGExplainerExt(BaseExplainerTG):
 #                original_pred, mask_values_ = self._tg_predict(event_idx, use_explainer=False)
 #                masked_pred, mask_values,_, _ = self._tg_predict(event_idx, use_explainer=True, exp_size=100)
                 _, _, id_loss, mask_values = self._tg_predict(
-                    event_idx, use_explainer=True, exp_size=100)
+                    event_idx, use_explainer=True)
                 loss += id_loss.type(torch.float32)
 
 #                id_loss = self._loss(masked_pred, original_pred, mask_values, self.reg_coefs)
@@ -328,7 +339,7 @@ class PGExplainerExt(BaseExplainerTG):
                 self.explainer_ckpt_dir, self.model_name, self.dataset_name, self.explainer_name, epoch=e)
             torch.save(state_dict, ckpt_save_path)
             tqdm.write(f"epoch {e} loss epoch {np.mean(loss_list)}, skipped: {skipped_num}, ckpt saved: {ckpt_save_path}")
-            with open('results/training_results/pge_losses.pkl', 'wb') as f:
+            with open(f'results/training_results/{self.model_name}_{self.dataset_name}_PGE_losses.pkl', 'wb') as f:
                 pck.dump(epoch_losses, f)
 
         state_dict = self.explainer_model.state_dict()

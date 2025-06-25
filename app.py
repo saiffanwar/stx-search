@@ -21,12 +21,14 @@ parser.add_argument('-s', '--subgraph_size', type=int,
                     default=20, help='Size of the subgraph for explanation')
 parser.add_argument('-m', '--mode', type=str, default='fidelity',
                     help='Mode for the simulated annealing algorithm')
+parser.add_argument('--model', type=str,
+                    default='TGCN', help='Which model to use')
 parser.add_argument('-d', '--dataset', type=str,
                     default='METR_LA', help='Which dataset to use')
 args = parser.parse_args()
 
 
-visualiser = Visualisation(dataset=args.dataset, target_idx=args.target_node,
+visualiser = Visualisation(model=args.model, dataset=args.dataset, target_idx=args.target_node,
                            subgraph_size=args.subgraph_size, mode=args.mode)
 exp_graph_fig, exp_heatmap_fig, exp_progression_fig, exp_temporal_distribution_fig = visualiser.generate_plots()
 

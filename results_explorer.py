@@ -3,13 +3,31 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def load_results():
-    file_path = 'results/training_results/pge_losses.pkl'
+def load_results(dataset='PEMS_BAY', model='TGCN'):
+    file_path = f'results/training_results/{model}_{dataset}_PGE_losses.pkl'
     with open(file_path, 'rb') as f:
         results = pck.load(f)
     plt.plot(list(range(len(results))), [float(r)
              for r in results], label='PGE Losses')
     plt.show()
+
+
+def base_model_losses(dataset='PEMS_BAY', model='TGCN'):
+    file_path = f'results/training_results/{dataset}_{model}_losses.pck'
+    with open(file_path, 'rb') as f:
+        results = pck.load(f)
+
+    training_losses = results['train'][1:]
+    validation_losses = results['eval'][1:]
+
+    plt.plot(list(range(len(training_losses))), [float(r) for r in training_losses], label='Training Losses')
+    plt.plot(list(range(len(validation_losses))), [float(r) for r in validation_losses], label='Validation Losses')
+    plt.title(f'{dataset} - {model} Training and Validation Losses')
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.show()
+
 
 
 with open('scaler.pck', 'rb') as f:
@@ -32,6 +50,8 @@ def plot_fidelities(dataset='METR_LA', model='TGCN'):
                         all_results[method][exp_size].append(abs(results['target_exp_y'].item() - results['target_model_y'].item()))
                     elif method == 'tgnnexplainer':
                         all_results[method][exp_size].append(abs(scaler.inverse_transform(results['target_model_y']) - scaler.inverse_transform(results['exp_pred'])))
+                    elif method == 'pg_explainer':
+                        all_results[method][exp_size].append(abs(scaler.inverse_transform(results['target_model_y'].item()) - scaler.inverse_transform(results['exp_pred'].item())))
 
 
     with open(f'results/{dataset}/{model}_fidelity_results.pkl', 'wb') as f:
@@ -55,4 +75,6 @@ def plot_fidelities(dataset='METR_LA', model='TGCN'):
     print(all_results)
 
 
-plot_fidelities('METR_LA', 'TGCN')
+# plot_fidelities('METR_LA', 'TGCN')
+load_results()
+# base_model_losses('PEMS_BAY', 'TGCN')

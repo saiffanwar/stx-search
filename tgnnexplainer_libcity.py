@@ -208,6 +208,7 @@ class TGNNExplainer_LibCity:
         return fidelity_score, target_exp_y
 
     def pg_ext_pred(self, mask_weights, exp_size=20):
+        print('EXP SIZE: ', exp_size)
         # target_model_y should be a tensor and requires_grad=False is fine
         #        print(mask_weights.detach().numpy().flatten())
 
@@ -222,6 +223,8 @@ class TGNNExplainer_LibCity:
         if exp_size is not None:
             values, indices = torch.topk(mask_weights.view(-1), exp_size)
             indices = indices.cpu().numpy()
+        else:
+            indices = np.arange(len(mask_weights))
 
         for e, event in enumerate(self.candidate_events):
             event_ts = self.events[event].timestamp

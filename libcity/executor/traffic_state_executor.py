@@ -298,9 +298,14 @@ class TrafficStateExecutor(AbstractExecutor):
         num_batches = len(train_dataloader)
         self._logger.info("num_batches:{}".format(num_batches))
 
+        results_dir = f'results/training_results/{self.config["dataset"]}_{self.config['model']}_losses.pck'
+        loss_results = {'train': [], 'eval': []}
+
         for epoch_idx in range(self._epoch_num, self.epochs):
             start_time = time.time()
             losses = self._train_epoch(train_dataloader, epoch_idx, self.loss_func)
+            loss_results['train'].append(np.mean(losses))
+            
             t1 = time.time()
             train_time.append(t1 - start_time)
             self._writer.add_scalar('training loss', np.mean(losses), epoch_idx)
@@ -310,6 +315,7 @@ class TrafficStateExecutor(AbstractExecutor):
             t2 = time.time()
             print('starting validation......')
             val_loss = self._valid_epoch(eval_dataloader, epoch_idx, self.loss_func)
+            loss_results['eval'].append(val_loss)
             print('finished validation......')
             end_time = time.time()
             eval_time.append(end_time - t2)
@@ -347,6 +353,8 @@ class TrafficStateExecutor(AbstractExecutor):
                 if wait == self.patience and self.use_early_stop:
                     self._logger.warning('Early stopping at epoch: %d' % epoch_idx)
                     break
+            with open(results_dir, 'wb') as f:
+                pck.dump(loss_results, f)
         if len(train_time) > 0:
             self._logger.info('Trained totally {} epochs, average train time is {:.3f}s, '
                               'average eval time is {:.3f}s'.

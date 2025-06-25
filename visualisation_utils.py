@@ -13,14 +13,14 @@ mapbox_access_token = open(".mapboxtoken").read()
 
 
 class Visualisation:
-    def __init__(self, dataset, target_idx, subgraph_size, mode):
+    def __init__(self, model, dataset, target_idx, subgraph_size, mode):
 
         self.dataset = dataset
         self.target_idx = target_idx
         self.subgraph_size = subgraph_size
         self.mode = mode
-        self.results_dir = f'results/{self.dataset}/best_result_{
-            self.target_idx}_{self.subgraph_size}_{self.mode}.pck'
+        self.model = model
+        self.results_dir = f'results/{self.dataset}/stx_search/stx_search_{self.model}_{self.dataset}_{self.target_idx}_{self.subgraph_size}.pck'
 
         with open(self.results_dir, 'rb') as f:
             results = pck.load(f)

@@ -75,7 +75,7 @@ elif args.explainer in ['pg_explainer', 'tgnnexplainer']:
         debug_mode=False,
         exp_size=args.exp_size,
         edge_feat=edge_feat,
-        retrain_explainer=False,
+        retrain_explainer=True,
     )
 
     if args.explainer == 'pg_explainer':
@@ -89,7 +89,7 @@ elif args.explainer in ['pg_explainer', 'tgnnexplainer']:
             ckpt_dir='saved/models/PGE_models/',
             device=device,
         )
-        c_puct = 10
+
         explainer = TGNNExplainer(model_name=args.model,
                                   explainer_name='tgnnexplainer',
                                   dataset_name=args.dataset,
@@ -98,7 +98,7 @@ elif args.explainer in ['pg_explainer', 'tgnnexplainer']:
                                   device=device,
                                   rollout=200,
                                   min_atoms=args.exp_size,
-                                  c_puct=c_puct,
+                                  c_puct=10,
                                   pg_explainer_model=pg_explainer_model,
                                   edge_feat=edge_feat,
                                   candidate_events_num=100,
