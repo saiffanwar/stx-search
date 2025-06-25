@@ -13,14 +13,13 @@ mapbox_access_token = open(".mapboxtoken").read()
 
 
 class Visualisation:
-    def __init__(self, model, dataset, target_idx, subgraph_size, mode):
+    def __init__(self, model, dataset, event_idx, subgraph_size, mode):
 
         self.dataset = dataset
-        self.target_idx = target_idx
         self.subgraph_size = subgraph_size
         self.mode = mode
         self.model = model
-        self.results_dir = f'results/{self.dataset}/stx_search/stx_search_{self.model}_{self.dataset}_{self.target_idx}_{self.subgraph_size}.pck'
+        self.results_dir = f'results/{self.dataset}/stx_search/stx_search_{self.model}_{self.dataset}_{event_idx}_{self.subgraph_size}.pck'
 
         with open(self.results_dir, 'rb') as f:
             results = pck.load(f)
@@ -31,6 +30,7 @@ class Visualisation:
         self.adj_mx = results['adj_mx']
         self.candidate_events = results['candidate_events']
         self.graph_events = results['graph_events']
+
 
         self.exp_events = results['events']
 
@@ -170,6 +170,7 @@ class Visualisation:
                                                      color[1])},{int(255 * color[2])})'
                     for color in node_colors
                 ]
+                print(self.x_coords[self.target_idx], self.y_coords[self.target_idx])
 
                 fig.add_trace(go.Scatter3d(
                     x=xs,
@@ -264,7 +265,7 @@ class Visualisation:
             e_s} ' for p, s, e, e_s in zip(self.probabilities, self.scores, self.errors, self.sizes)]
 
         fig = make_subplots(rows=2, cols=2, shared_xaxes=True, vertical_spacing=0.05, subplot_titles=[
-            'Current Score', 'Explanation Size', 'Error', 'Acceptance Probability'],)
+            'Current Score', 'Explanation Size', 'Error', 'Acceptance Probability'])
 
         fig.add_trace(go.Scatter(x=xs, y=self.scores, name='Current Score',
                       text=hovertext, hoverinfo='text', line=dict(color='blue')), row=1, col=1)
@@ -282,15 +283,19 @@ class Visualisation:
                               y=1.02,
                               xanchor="right",
                               x=1
-                          ))
-#
+                          ),
+                          title=f'Explanation Progression for {self.target_idx}',)
+
+
+
+
+
 #
         return fig
 
     def explanation_heatmap(self):
 
         target_idx = self.target_idx
-        print(f'Target Node: {target_idx}')
 
         num_nodes = np.zeros(len(self.adj_mx))
 
@@ -299,6 +304,7 @@ class Visualisation:
         for e in self.exp_events:
             e_t, e_idx = self.graph_events[e].timestamp, self.graph_events[e].node_idx
             num_nodes[e_idx] += 1
+
 
         cmap = plt.cm.get_cmap('Greens')
         norm = plt.Normalize(vmin=min(num_nodes), vmax=max(num_nodes))
@@ -315,19 +321,39 @@ class Visualisation:
 
         all_ys = [y for y, m in zip(all_ys, mask) if m]
         all_xs = [x for x, m in zip(all_xs, mask) if m]
-        colours = [c for c, m in zip(node_colours_rgb, mask) if m]
-#    subgraph_nodes = [n for n,m in zip(all_subgraph_nodes, mask) if m]
 
         num_nodes = [n for n in num_nodes if n > 0]
 
-        if self.dataset == 'METR_LA':
+        colours = [c for c, m in zip(node_colours_rgb, mask) if m]
+
+        # colours = node_colours_rgb
+        # print(colours)
+
+#    subgraph_nodes = [n for n,m in zip(all_subgraph_nodes, mask) if m]
+
+        if self.dataset in ['METR_LA', 'PEMS_BAY']:
+            if self.dataset == 'METR_LA':
+                centre = [34.121990, -118.2717]
+            elif self.dataset == 'PEMS_BAY':
+                centre = [37.3382, -121.8863]
+            fig.add_trace(go.Scattermapbox(
+                lat=self.y_coords,
+                lon=self.x_coords,
+                mode='markers',
+                name='Non-Explanation Nodes',
+                marker=go.scattermapbox.Marker(
+                    size=15,
+                    color='green',
+                    opacity=0.2,
+                ),
+            ))
             fig.add_trace(go.Scattermapbox(
                 lat=all_ys,
                 lon=all_xs,
                 mode='markers',
                 name='Explanation Nodes',
                 marker=go.scattermapbox.Marker(
-                    size=14,
+                    size=30,
                     color=colours,
                 ),
                 text=[f"Node: {i} \n  Num Nodes: {
@@ -336,18 +362,18 @@ class Visualisation:
             ))
 
             fig.add_trace(go.Scattermapbox(
-                lat=[self.x_coords[self.target_idx]],
-                lon=[self.y_coords[self.target_idx]],
+                lat=[self.y_coords[self.target_idx]],
+                lon=[self.x_coords[self.target_idx]],
                 name='Target Node',
                 mode='markers',
                 marker=go.scattermapbox.Marker(
-                    size=14,
+                    size=30,
                     color='orange',
                     opacity=0.6
                 ),
-                text=f"Node: {target_idx} \n  Num Nodes: {
-                    num_nodes[self.target_idx]}",
-                hoverinfo='text'
+                # text=f"Node: {self.target_idx} \n  Num Nodes: {
+                #     num_nodes[self.target_idx]}",
+                # hoverinfo='text'
             ))
 
             fig.update_layout(
@@ -358,8 +384,8 @@ class Visualisation:
                     accesstoken=mapbox_access_token,
                     bearing=0,
                     center=go.layout.mapbox.Center(
-                        lat=34.121990,
-                        lon=-118.2717
+                        lat=centre[0],
+                        lon=centre[1]
                     ),
                     pitch=0,
                     zoom=10

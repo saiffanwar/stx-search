@@ -28,7 +28,7 @@ parser.add_argument('-d', '--dataset', type=str,
 args = parser.parse_args()
 
 
-visualiser = Visualisation(model=args.model, dataset=args.dataset, target_idx=args.target_node,
+visualiser = Visualisation(model=args.model, dataset=args.dataset, event_idx=args.target_node,
                            subgraph_size=args.subgraph_size, mode=args.mode)
 exp_graph_fig, exp_heatmap_fig, exp_progression_fig, exp_temporal_distribution_fig = visualiser.generate_plots()
 

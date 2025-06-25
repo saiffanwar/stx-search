@@ -44,9 +44,17 @@ class STX_Search_LibCity:
         self.gamma = 1
 
     class Event:
-        def __init__(self, timestamp, node_idx, value):
+        def __init__(self, timestamp, node_idx, value, event_idx=None):
+            '''
+            Args:
+                timestamp (int): The timestamp of the event.
+                node_idx (int): The index of the node where the event occurred.
+                value (float): The value associated with the event.
+                event_index (int, optional): The index of the event in the list of events where there are total num_ts*num_nodes events.
+            '''
             self.timestamp = timestamp
             self.node_idx = node_idx
+            self.event_idx = event_idx
             self.value = value
 
     def _initialize(self, explaining_event_idx, exp_size):
@@ -59,13 +67,15 @@ class STX_Search_LibCity:
 
     def construct_input_data_from_event(self, explaining_event_idx):
         self.explaining_event_idx = explaining_event_idx
+        self.explaining_event = self.all_events.iloc[explaining_event_idx]
 
         self.node_id_to_idx = pd.unique(self.all_events['u']).tolist()
-        self.target_event = self.Event(self.all_events.iloc[explaining_event_idx]['ts'],
+        self.target_event = self.Event(self.explaining_event['ts'],
                                        self.node_id_to_idx.index(
-            self.all_events.iloc[explaining_event_idx]['u']),
-            self.scaler.transform(self.all_events.iloc[explaining_event_idx]['f0']))
+            self.explaining_event['u']),
+            self.scaler.transform(self.explaining_event['f0']))
         self.target_idx = self.target_event.node_idx
+        print(self.explaining_event)
         print('TARGET_IDX: ', self.target_idx)
 
         target_timestamp = self.all_events.iloc[explaining_event_idx]['ts']
@@ -91,10 +101,12 @@ class STX_Search_LibCity:
         rescaled_data = self.scaler.inverse_transform(self.data['X'])
 
         self.events = []
+        e_num = 0
         for timestamp in range(self.input_window):
             for node in range(self.data['X'].shape[2]):
                 self.events.append(self.Event(
-                    timestamp, node, rescaled_data[0, timestamp, node, 0].detach().cpu().numpy()))
+                    timestamp, node, rescaled_data[0, timestamp, node, 0].detach().cpu().numpy(), e_num))
+                e_num += 1
 
     def load_data(self):
         single_batch_config = copy.deepcopy(self.config)
@@ -120,11 +132,13 @@ class STX_Search_LibCity:
     def generate_masked_input(self, exp_events):
         import copy
         masked_input = copy.deepcopy(self.data)
-        for event_idx in self.candidate_events:
-            if event_idx not in exp_events:
-                event_timestamp, event_node_idx = self.events[
-                    event_idx].timestamp, self.events[event_idx].node_idx
-                masked_input['X'][0, event_timestamp, event_node_idx, :] = 0
+        masked_input['X'] = torch.zeros_like(masked_input['X'])
+        for event_idx in exp_events:
+            event_timestamp, event_node_idx = self.events[
+                event_idx].timestamp, self.events[event_idx].node_idx
+            masked_input['X'][0, event_timestamp, event_node_idx, :] = torch.Tensor(self.events[event_idx].value).to(self.device)
+        # print('Num non-zero events in masked input: ',
+        #       torch.count_nonzero(masked_input['X']).item())
 #        return self.data
         return masked_input
 
@@ -133,19 +147,17 @@ class STX_Search_LibCity:
             batch.data[key] = batch.data[key].to('cpu')
 
     def set_computation_graph(self):
-        candidate_events = [self.target_idx]
-
+        n_hop_neighbourhood = [self.target_event.node_idx]
         num_hops=2
         for n in range(num_hops):
-            for neighbour in candidate_events:
-                candidate_events.extend(
+            for neighbour in n_hop_neighbourhood:
+                n_hop_neighbourhood.extend(
                     list(np.argwhere(self.adj_mx[neighbour] > 0).flatten()))
-                candidate_events = list(set(candidate_events))
+                n_hop_neighbourhood = list(set(n_hop_neighbourhood))
 
-#        self.candidate_events = list(set(candidate_events))
-        self.candidate_events = list(range(len(self.events)))
+        self.candidate_events = [e.event_idx for e in self.events if e.node_idx in n_hop_neighbourhood]
 
-        return candidate_events
+        return self.candidate_events
 
     def exp_prediction(self, exp_events):
         exp_masked_input = self.generate_masked_input(exp_events)
@@ -209,7 +221,8 @@ class STX_Search_LibCity:
     def explain(self, explaining_event_idx, exp_size=20, mode='fidelity', num_iter=10000):
 
         self._initialize(explaining_event_idx, exp_size)
-        sa = SimulatedAnnealing(self.data['X'].detach().cpu().numpy(), self.events, self.adj_mx, self.dataset_name,
+        # print(self.candidate_events)
+        sa = SimulatedAnnealing(self.data['X'].detach().cpu().numpy(), self.events, self.adj_mx, self.model_name, self.dataset_name,
                                 self.target_idx, self.explaining_event_idx, self.candidate_events, exp_size, score_func=self.score_func, verbose=True)
 #        score, exp, model_pred, exp_pred = sa.run(iterations=num_iter, expmode='fidelity')
         if mode != 'both':

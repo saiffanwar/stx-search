@@ -14,11 +14,14 @@ import time
 
 
 class SimulatedAnnealing:
-    def __init__(self, data, graph_events, adj_mx, dataset_name, target_idx, explaining_event_idx, candidate_events, exp_size, score_func, expmode='fidelity', verbose=False):
+    def __init__(self, data, graph_events, adj_mx, model_name, dataset_name, target_idx, explaining_event_idx, candidate_events, exp_size, score_func, expmode='fidelity', verbose=False):
         self.data = data
         self.graph_events = graph_events
         self.input_window = np.shape(data)[1]
         self.adj_mx = adj_mx
+        self.model_name = model_name
+        self.dataset_name = dataset_name
+
 
         self.expmode = expmode
         self.candidate_events = candidate_events
@@ -33,7 +36,6 @@ class SimulatedAnnealing:
         self.cooling_rate = 0.99
         self.exp_size = exp_size
         self.objective_function = score_func
-        self.dataset_name = dataset_name
         self.results_dir = f'{os.getcwd()}/results/{dataset_name}/'
         self.verbose = verbose
 
@@ -106,7 +108,7 @@ class SimulatedAnnealing:
                 self.actions.append(False)
 
         self.exp_sizes.append(len(new_events))
-        self.scores.append(float(new_score))
+        self.scores.append(float(self.score))
         self.errors.append(abs(target_model_y - target_exp_y))
 
         if self.verbose == True:
@@ -203,7 +205,7 @@ class SimulatedAnnealing:
                 self.candidate_events, self.exp_size, replace=False))
             initial_events = [int(e) for e in initial_events]
         elif self.expmode in ['fidelity+size', 'delta_fidelity']:
-            with open(f'results/{self.dataset_name}/best_result_{self.explaining_event_idx}_{self.exp_size}_fidelity.pck', 'rb') as f:
+            with open(f'results/{self.dataset_name}/stx_search/stx_search_{self.model_name}_{self.dataset_name}_{self.explaining_event_idx}_{self.exp_size}.pck', 'rb') as f:
                 best_result = pck.load(f)
             initial_events = best_result['events']
 
@@ -232,7 +234,7 @@ class SimulatedAnnealing:
             for i in tqdm(range(iterations)):
                 self.annealing_iteration(iteration=i)
                 if i % 100 == 0:
-                    with open(f'results/{self.dataset_name}/best_result_{self.explaining_event_idx}_{self.exp_size}_{self.expmode}.pck', 'wb') as f:
+                    with open(f'results/{self.dataset_name}/stx_search/stx_search_{self.model_name}_{self.dataset_name}_{self.explaining_event_idx}_{self.exp_size}.pck', 'wb') as f:
                         pck.dump(self.visualisation_data(), f)
         self.best_events = [int(e) for e in self.best_events]
 
