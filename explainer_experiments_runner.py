@@ -43,15 +43,16 @@ if args.explainer == 'stx_search':
     with torch.no_grad():
         explainer = STX_Search_LibCity(
             args.model, args.dataset, all_events=events)
-        for event_idx in events_to_explain:
-            print(f'######################## Explaining event {event_idx} using STX Search ########################')
+        for event_idx in events_to_explain[1:]:
+            for exp_size in [20, 50, 75, 100]:
+                print(f'######################## Explaining event {event_idx} with exp size {exp_size} using STX Search')
 
-            num_iter = 10000
+                num_iter = 2000
 
-            tic = time.time()
-            score, exp_events, model_pred, exp_pred = explainer.explain(
-                explaining_event_idx=event_idx, exp_size=args.exp_size, mode=args.stx_mode, num_iter=num_iter)
-            toc = time.time()
+                tic = time.time()
+                score, exp_events, model_pred, exp_pred = explainer.explain(
+                    explaining_event_idx=event_idx, exp_size=exp_size, mode=args.stx_mode, num_iter=num_iter)
+                toc = time.time()
 elif args.explainer in ['pg_explainer', 'tgnnexplainer']:
 
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')

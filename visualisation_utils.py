@@ -13,13 +13,13 @@ mapbox_access_token = open(".mapboxtoken").read()
 
 
 class Visualisation:
-    def __init__(self, model, dataset, event_idx, subgraph_size, mode):
+    def __init__(self, model, dataset, event_idx, exp_size, mode):
 
         self.dataset = dataset
-        self.subgraph_size = subgraph_size
+        self.exp_size = exp_size
         self.mode = mode
         self.model = model
-        self.results_dir = f'results/{self.dataset}/stx_search/stx_search_{self.model}_{self.dataset}_{event_idx}_{self.subgraph_size}.pck'
+        self.results_dir = f'results/{self.dataset}/stx_search/stx_search_{self.model}_{self.dataset}_{event_idx}_{self.exp_size}.pck'
 
         with open(self.results_dir, 'rb') as f:
             results = pck.load(f)
@@ -264,7 +264,7 @@ class Visualisation:
         hovertext = [f'Probability: {p} <br> Score: {s} <br> Error: {e} <br> Exp Size: {
             e_s} ' for p, s, e, e_s in zip(self.probabilities, self.scores, self.errors, self.sizes)]
 
-        fig = make_subplots(rows=2, cols=2, shared_xaxes=True, vertical_spacing=0.05, subplot_titles=[
+        fig = make_subplots(rows=1, cols=4, shared_xaxes=True, vertical_spacing=0.05, subplot_titles=[
             'Current Score', 'Explanation Size', 'Error', 'Acceptance Probability'])
 
         fig.add_trace(go.Scatter(x=xs, y=self.scores, name='Current Score',
@@ -272,25 +272,13 @@ class Visualisation:
         fig.add_trace(go.Scatter(x=xs, y=self.sizes, name='Explanation Size',
                       text=hovertext, hoverinfo='text', line=dict(color='green')), row=1, col=2)
         fig.add_trace(go.Scatter(x=xs, y=self.errors, name='Error', text=hovertext,
-                      hoverinfo='text', line=dict(color='red')), row=2, col=1)
+                      hoverinfo='text', line=dict(color='red')), row=1, col=3)
         fig.add_trace(go.Scatter(x=xs, y=self.probabilities, mode='markers', name='Acceptance Probabilities',
-                      text=hovertext, hoverinfo='text', line=dict(color='purple')), row=2, col=2)
+                      text=hovertext, hoverinfo='text', line=dict(color='purple')), row=1, col=4)
 
-        fig.update_layout(height=1000,
-                          legend=dict(
-                              orientation="h",
-                              yanchor="bottom",
-                              y=1.02,
-                              xanchor="right",
-                              x=1
-                          ),
+        fig.update_layout(height=500,
+                          showlegend=False,
                           title=f'Explanation Progression for {self.target_idx}',)
-
-
-
-
-
-#
         return fig
 
     def explanation_heatmap(self):
@@ -390,7 +378,14 @@ class Visualisation:
                     pitch=0,
                     zoom=10
                 ),
-                height=1000,
+                legend=dict(
+                    orientation="h",
+                    yanchor="bottom",
+                    y=0.01,
+                    xanchor="center",
+                    x=0.5
+                ),
+                # height=600,
             )
 
         else:
@@ -432,7 +427,7 @@ class Visualisation:
 
             fig.update_layout(
                 title="Spatial Distribution of Nodes in Explanation",
-                height=1000,
+                # height=600,
             )
 
         return fig
@@ -477,7 +472,7 @@ class Visualisation:
             )
 
         fig.update_layout(
-            height=1000,
+            # height=600,
             title='Temporal Distribution of Nodes in Explanation',
             xaxis_title="Timestamp",
             yaxis_title="Location Index"
