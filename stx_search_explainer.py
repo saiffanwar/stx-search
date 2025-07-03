@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-import dill as pck
+import pickle as pck
 import argparse
 import copy
 import os
@@ -75,8 +75,6 @@ class STX_Search_LibCity:
             self.explaining_event['u']),
             self.scaler.transform(self.explaining_event['f0']))
         self.target_idx = self.target_event.node_idx
-        print(self.explaining_event)
-        print('TARGET_IDX: ', self.target_idx)
 
         target_timestamp = self.all_events.iloc[explaining_event_idx]['ts']
         max_history = target_timestamp - self.input_window

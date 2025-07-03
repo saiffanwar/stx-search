@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-import dill as pck
+import pickle as pck
 import os
 import argparse
 import copy

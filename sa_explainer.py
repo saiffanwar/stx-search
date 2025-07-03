@@ -7,7 +7,7 @@ from tqdm import tqdm
 import copy
 from matplotlib import pyplot as plt
 from pprint import pprint
-import dill as pck
+import pickle as pck
 import time
 
 # from visualisation_utils import graph_visualiser
@@ -90,7 +90,7 @@ class SimulatedAnnealing:
 #                self.best_delta_fidelity = delta_fidelity
 #                self.target_complement_exp_y = target_complement_exp_y
                 self.target_exp_y = target_exp_y
-                self.exp_y = exp_y.detach().cpu().numpy()
+                self.exp_y = exp_y
             self.acceptance_probabilities.append(None)
             self.actions.append(True)
 
@@ -188,9 +188,13 @@ class SimulatedAnnealing:
         results['probabilities'] = self.acceptance_probabilities
 
         results['model_y'] = self.model_y
-        results['target_model_y'] = self.target_model_y
-        results['exp_y'] = self.exp_y
-        results['target_exp_y'] = self.exp_y[0, 0, self.target_idx, 0]
+        results['target_model_y'] = self.target_model_y.item()
+        results['exp_y'] = self.exp_y.detach().cpu().numpy()
+        results['target_exp_y'] = self.exp_y[0, 0, self.target_idx, 0].item()
+
+        for k, v in results.items():
+            print(k, type(v))
+
 
         return results
 
