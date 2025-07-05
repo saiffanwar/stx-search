@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def load_results(dataset="PEMS_BAY", model="TGCN"):
+def load_results(dataset="GRID", model="TGCN"):
     file_path = f"results/training_results/{model}_{dataset}_PGE_losses.pkl"
     with open(file_path, "rb") as f:
         results = pck.load(f)
@@ -42,21 +42,35 @@ with open("scaler.pck", "rb") as f:
 
 
 def plot_fidelities(dataset="METR_LA", model="TGCN"):
-    event_ids = [
-        5363900,
-        933912,
-        209805,
-        6220576,
-        2307113,
-        2054301,
-        1872427,
-        1170528,
-        6177968,
-        859791,
-    ]
+    if dataset == "METR_LA":
+        event_ids = [
+            5363900,
+            933912,
+            209805,
+            6220576,
+            2307113,
+            2054301,
+            1872427,
+            1170528,
+            6177968,
+            859791,
+        ]
+    elif dataset == "PEMS_BAY":
+        event_ids = [
+            3735650,
+            839221,
+            9228452,
+            8217207,
+            7489709,
+            4682115,
+            3439167,
+            2917183,
+            14157347,
+            1066449,
+        ]
     exp_sizes = [20, 50, 75, 100]
     file_path = f"results/{dataset}/"
-    methods = ["stx_search", "tgnnexplainer", "pg_explainer"]
+    methods = ["stx_search", "tgnnexplainer", "pg_explainer"][1:2]
 
     all_results = {
         method: {exp_size: [] for exp_size in exp_sizes} for method in methods
@@ -68,9 +82,7 @@ def plot_fidelities(dataset="METR_LA", model="TGCN"):
                     f"Processing {method} for event {event_id} with exp size {exp_size}"
                 )
                 with open(
-                    f"{file_path}{method}/{method}_{model}_{dataset}_{event_id}_{
-                        exp_size
-                    }.pck",
+                    f"{file_path}{method}/{method}_{model}_{dataset}_{event_id}_{exp_size}.pck",
                     "rb",
                 ) as f:
                     results = pck.load(f)
@@ -119,6 +131,6 @@ def plot_fidelities(dataset="METR_LA", model="TGCN"):
     print(all_results)
 
 
-plot_fidelities("METR_LA", "TGCN")
-# load_results()
-# base_model_losses('PEMS_BAY', 'TGCN')
+# plot_fidelities("PEMS_BAY", "TGCN")
+load_results()
+# base_model_losses("GRID", "TGCN")

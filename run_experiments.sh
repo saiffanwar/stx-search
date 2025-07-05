@@ -1,4 +1,4 @@
-python explainer_experiments_runner.py --explainer tgnnexplainer -s 20 -d PEMS_BAY
-# python explainer_experiments_runner.py --explainer tgnnexplainer -s 50
-# python explainer_experiments_runner.py -s 75
-# python explainer_experiments_runner.py -s 100
+python3 explainer_experiments_runner.py -s 20 -d GRID --explainer pg_explainer
+python3 explainer_experiments_runner.py -s 50 -d GRID --explainer pg_explainer
+python3 explainer_experiments_runner.py -s 75 -d GRID --explainer pg_explainer
+python3 explainer_experiments_runner.py -s 100 -d GRID --explainer pg_explainer

@@ -52,6 +52,7 @@ args = parser.parse_args()
 
 events = pd.read_csv(f"raw_data/{args.dataset}/ml_{args.dataset}.csv")
 events["e_idx"] = events.index
+print(events.head())
 
 random.seed(42)
 
@@ -68,12 +69,10 @@ if args.explainer == "stx_search":
         for event_idx in events_to_explain:
             for exp_size in [20, 50, 75, 100]:
                 print(
-                    f"######################## Explaining event {
-                        event_idx
-                    } with exp size {exp_size} using STX Search"
+                    f"######################## Explaining event {event_idx} with exp size {exp_size} using STX Search"
                 )
 
-                num_iter = 2000
+                num_iter = 10000
 
                 tic = time.time()
                 score, exp_events, model_pred, exp_pred = explainer.explain(
@@ -132,7 +131,7 @@ elif args.explainer in ["pg_explainer", "tgnnexplainer"]:
             c_puct=10,
             pg_explainer_model=pg_explainer_model,
             edge_feat=edge_feat,
-            candidate_events_num=100,
+            candidate_events_num=200,
         )
 
         explainer(event_idxs=events_to_explain)
