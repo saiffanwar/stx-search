@@ -15,39 +15,15 @@ sys.path.append(os.getcwd() + "/tgnnexplainer_src")
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument(
-    "-m",
-    "--model",
-    type=str,
-    default="TGCN",
-    help="Mode of operation: generate or visualise",
-)
-parser.add_argument(
-    "-t",
-    "--target_idx",
-    type=int,
-    default=None,
-    help="Target node index for explanation",
-)
-parser.add_argument(
-    "-s",
-    "--exp_size",
-    type=int,
-    default=20,
-    help="Size of the subgraph for explanation",
-)
+parser.add_argument("-m", "--model", type=str, default="TGCN", help="Mode of operation: generate or visualise")
+parser.add_argument("-t", "--target_idx", type=int, default=None, help="Target node index for explanation")
+parser.add_argument("-s", "--exp_size", type=int, default=20, help="Size of the subgraph for explanation")
 parser.add_argument("-d", "--dataset", type=str, default="METR_LA", help="Dataset name")
 parser.add_argument("--stx_mode", type=str, default="fidelity", help="Explanation Mode")
-parser.add_argument(
-    "--explainer",
-    type=str,
-    default="stx_search",
-    help="Explainer to use: stx_search, tgnnexplainer or pg_explainer",
-)
-parser.add_argument(
-    "--num_exps", type=int, default=10, help="Number of events to explain"
-)
+parser.add_argument("--explainer", type=str, default="stx_search", help="Explainer to use: stx_search, tgnnexplainer or pg_explainer")
+parser.add_argument("--num_exps", type=int, default=10, help="Number of events to explain")
 args = parser.parse_args()
+
 
 
 events = pd.read_csv(f"raw_data/{args.dataset}/ml_{args.dataset}.csv")
@@ -72,7 +48,7 @@ if args.explainer == "stx_search":
                     f"######################## Explaining event {event_idx} with exp size {exp_size} using STX Search"
                 )
 
-                num_iter = 10000
+                num_iter = 5000
 
                 tic = time.time()
                 score, exp_events, model_pred, exp_pred = explainer.explain(
