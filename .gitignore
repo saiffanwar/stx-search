@@ -11,6 +11,7 @@ raw_data/GRID/
 raw_data/PEMS_BAY/
 libcity/cache
 results/
+results_backup/
 
 
 # Byte-compiled / optimized / DLL files

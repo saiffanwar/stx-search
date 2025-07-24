@@ -289,17 +289,17 @@ class STX_Search_LibCity:
         if self.dataset_name == 'PEMS_BAY' and self.explaining_event['u'] in [400001, 400017, 400240, 400560, 400677, 407202]:
             return None, None, None, None
 
-        # sa = SimulatedAnnealing(self.data['X'].detach().cpu().numpy(), self.events, self.adj_mx, self.model_name, self.dataset_name,
-        #                         self.target_idx, self.explaining_event_idx, self.candidate_events, exp_size, score_func=self.score_func, verbose=True)
-        # if mode != 'both':
-        #     score, exp, model_pred, exp_pred = sa.run(
-        #         iterations=num_iter, expmode=mode)
-        # else:
-        #     score, exp, model_pred, exp_pred = sa.run(
-        #         iterations=num_iter, expmode='fidelity', best_events=self.candidate_events)
-        #     score, exp, model_pred, exp_pred = sa.run(
-        #         iterations=num_iter, expmode='fidelity+size', best_events=exp)
+        sa = SimulatedAnnealing(self.data['X'].detach().cpu().numpy(), self.events, self.adj_mx, self.model_name, self.dataset_name,
+                                self.target_idx, self.explaining_event_idx, self.candidate_events, exp_size, score_func=self.score_func, verbose=True)
+        if mode != 'both':
+            score, exp, model_pred, exp_pred = sa.run(
+                iterations=num_iter, expmode=mode)
+        else:
+            score, exp, model_pred, exp_pred = sa.run(
+                iterations=num_iter, expmode='fidelity', best_events=self.candidate_events)
+            score, exp, model_pred, exp_pred = sa.run(
+                iterations=num_iter, expmode='fidelity+size', best_events=exp)
 
-        self.check_monotonicity()
+        # self.check_monotonicity()
 
         return score, exp, model_pred, exp_pred

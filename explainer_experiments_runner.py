@@ -3,6 +3,7 @@ import os
 import random
 import sys
 import time
+import pickle as pck
 
 import pandas as pd
 import torch
@@ -28,27 +29,21 @@ args = parser.parse_args()
 
 events = pd.read_csv(f"raw_data/{args.dataset}/ml_{args.dataset}.csv")
 events["e_idx"] = events.index
-print(events.head())
 
-random.seed(42)
+events_to_explain = pck.load(open(f"raw_data/{args.dataset}/events_to_explain.pck", "rb"))
 
-if args.target_idx is not None:
-    events_to_explain = [args.target_idx]
-else:
-    events_to_explain = random.sample(list(events["e_idx"]), args.num_exps)
-print(f"Events to explain: {events_to_explain}")
 
 if args.explainer == "stx_search":
     with torch.no_grad():
         print("Initialising Explainer...")
         explainer = STX_Search_LibCity(args.model, args.dataset, all_events=events)
         for event_idx in events_to_explain:
-            for exp_size in [20, 50, 75, 100]:
+            for exp_size in [args.exp_size]:
                 print(
                     f"######################## Explaining event {event_idx} with exp size {exp_size} using STX Search"
                 )
 
-                num_iter = 5000
+                num_iter = 10000
 
                 tic = time.time()
                 score, exp_events, model_pred, exp_pred = explainer.explain(
