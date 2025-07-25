@@ -621,7 +621,7 @@ class TGNNExplainer(BaseExplainerTG):
         explanation_results["target_model_y"] = target_model_y
         explanation_results["exp_pred"] = exp_pred
         with open(
-            f"results/tgnnexplainer_{self.model_name}_{self.dataset_name}_{event_idx}_{self.min_atoms}.pkl",
+            f"results/{self.dataset_name}/tgnnexplainer/tgnnexplainer_{self.model_name}_{self.dataset_name}_{event_idx}_{self.min_atoms}.pkl",
             "wb",
         ) as f:
             pck.dump(explanation_results, f)

@@ -32,6 +32,7 @@ events["e_idx"] = events.index
 
 events_to_explain = pck.load(open(f"raw_data/{args.dataset}/events_to_explain.pck", "rb"))
 
+events_to_explain = events_to_explain[:1]
 
 if args.explainer == "stx_search":
     with torch.no_grad():
@@ -43,7 +44,7 @@ if args.explainer == "stx_search":
                     f"######################## Explaining event {event_idx} with exp size {exp_size} using STX Search"
                 )
 
-                num_iter = 10000
+                num_iter = 100
 
                 tic = time.time()
                 score, exp_events, model_pred, exp_pred = explainer.explain(
@@ -102,7 +103,7 @@ elif args.explainer in ["pg_explainer", "tgnnexplainer"]:
             c_puct=10,
             pg_explainer_model=pg_explainer_model,
             edge_feat=edge_feat,
-            candidate_events_num=200,
+            candidate_events_num=20,
         )
 
         explainer(event_idxs=events_to_explain)

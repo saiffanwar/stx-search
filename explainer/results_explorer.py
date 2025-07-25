@@ -41,78 +41,57 @@ with open("scaler.pck", "rb") as f:
     scaler = pck.load(f)
 
 
-def plot_fidelities(dataset="METR_LA", model="TGCN"):
-    if dataset == "METR_LA":
-        event_ids = [
-            5363900,
-            933912,
-            209805,
-            6220576,
-            2307113,
-            2054301,
-            1872427,
-            1170528,
-            6177968,
-            859791,
-        ]
-    elif dataset == "PEMS_BAY":
-        event_ids = [
-            3735650,
-            839221,
-            9228452,
-            8217207,
-            7489709,
-            4682115,
-            3439167,
-            2917183,
-            14157347,
-            1066449,
-        ]
+def plot_fidelities(dataset="METR_LA", model="TGCN", preloaded=False):
     exp_sizes = [20, 50, 75, 100]
-    file_path = f"results/{dataset}/"
-    methods = ["stx_search", "tgnnexplainer", "pg_explainer"][1:2]
 
-    all_results = {
-        method: {exp_size: [] for exp_size in exp_sizes} for method in methods
-    }
-    for method in methods:
-        for exp_size in exp_sizes:
-            for event_id in event_ids:
-                print(
-                    f"Processing {method} for event {event_id} with exp size {exp_size}"
-                )
-                with open(
-                    f"{file_path}{method}/{method}_{model}_{dataset}_{event_id}_{exp_size}.pck",
-                    "rb",
-                ) as f:
-                    results = pck.load(f)
-                    if method == "stx_search":
-                        all_results[method][exp_size].append(
-                            abs(
-                                results["target_exp_y"].item()
-                                - results["target_model_y"].item()
-                            )
-                        )
-                    elif method == "tgnnexplainer":
-                        all_results[method][exp_size].append(
-                            abs(
-                                scaler.inverse_transform(results["target_model_y"])
-                                - scaler.inverse_transform(results["exp_pred"])
-                            )
-                        )
-                    elif method == "pg_explainer":
-                        all_results[method][exp_size].append(
-                            abs(
-                                scaler.inverse_transform(
-                                    results["target_model_y"].item()
+    if not preloaded:
+        event_ids = pck.load(open(f"raw_data/{dataset}/events_to_explain.pck", "rb"))
+        file_path = f"results/{dataset}/"
+        methods = ["stx_search", "tgnnexplainer", "pg_explainer"][:1]
+
+        all_results = {
+            method: {exp_size: [] for exp_size in exp_sizes} for method in methods
+        }
+
+
+        for method in methods:
+            for exp_size in exp_sizes:
+                for event_id in event_ids:
+                    print(
+                        f"Processing {method} for event {event_id} with exp size {exp_size}"
+                    )
+                    with open(
+                        f"{file_path}{method}/{method}_{model}_{dataset}_{event_id}_{exp_size}.pck",
+                        "rb",
+                    ) as f:
+                        results = pck.load(f)
+                        if method == "stx_search":
+                            all_results[method][exp_size].append(
+                                abs(
+                                    results["target_exp_y"]
+                                    - results["target_model_y"]
                                 )
-                                - scaler.inverse_transform(results["exp_pred"].item())
                             )
-                        )
+                        elif method == "tgnnexplainer":
+                            all_results[method][exp_size].append(
+                                abs(
+                                    scaler.inverse_transform(results["target_model_y"])
+                                    - scaler.inverse_transform(results["exp_pred"])
+                                )
+                            )
+                        elif method == "pg_explainer":
+                            all_results[method][exp_size].append(
+                                abs(
+                                    scaler.inverse_transform(
+                                        results["target_model_y"].item()
+                                    )
+                                    - scaler.inverse_transform(results["exp_pred"].item())
+                                )
+                            )
 
-    with open(f"results/{dataset}/{model}_fidelity_results.pkl", "wb") as f:
-        pck.dump(all_results, f)
-    #
+        with open(f"results/{dataset}/{model}_fidelity_results.pkl", "wb") as f:
+            pck.dump(all_results, f)
+        #
     with open(f"results/{dataset}/{model}_fidelity_results.pkl", "rb") as f:
         all_results = pck.load(f)
 
@@ -131,6 +110,6 @@ def plot_fidelities(dataset="METR_LA", model="TGCN"):
     print(all_results)
 
 
-# plot_fidelities("PEMS_BAY", "TGCN")
-load_results()
+plot_fidelities("PEMS_BAY", "TGCN", preloaded=False)
+# load_results()
 # base_model_losses("GRID", "TGCN")

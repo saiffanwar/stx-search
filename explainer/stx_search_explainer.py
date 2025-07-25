@@ -286,11 +286,12 @@ class STX_Search_LibCity:
     def explain(self, explaining_event_idx, exp_size=20, mode='fidelity', num_iter=5000):
 
         self._initialize(explaining_event_idx, exp_size)
+        # These node_ids dont have enough neighbours in the graph to explain
         if self.dataset_name == 'PEMS_BAY' and self.explaining_event['u'] in [400001, 400017, 400240, 400560, 400677, 407202]:
             return None, None, None, None
 
         sa = SimulatedAnnealing(self.data['X'].detach().cpu().numpy(), self.events, self.adj_mx, self.model_name, self.dataset_name,
-                                self.target_idx, self.explaining_event_idx, self.candidate_events, exp_size, score_func=self.score_func, verbose=True)
+                                self.target_idx, self.explaining_event_idx, self.candidate_events, exp_size, score_func=self.score_func, verbose=False)
         if mode != 'both':
             score, exp, model_pred, exp_pred = sa.run(
                 iterations=num_iter, expmode=mode)

@@ -272,8 +272,19 @@ class SimulatedAnnealing:
         #        print('Best score: ', self.best_score, 'Best pred:', self.best_pred, 'Best delta fidelity:', self.best_delta_fidelity, 'Best unimportant pred:', self.best_unimportant_pred)
 
         if len(self.best_events) != int(len(self.candidate_events)):
-            for i in tqdm(range(iterations)):
+            for i in range(iterations):
                 self.annealing_iteration(iteration=i)
+                if self.best_score < 0.00001:
+                    print(
+                        f"Early stopping at iteration {i} with score {self.best_score}"
+                    )
+                    with open(
+                        f"results/{self.dataset_name}/stx_search/stx_search_{self.model_name}_{self.dataset_name}_{self.explaining_event_idx}_{self.exp_size}.pck",
+                        "wb",
+                    ) as f:
+                        pck.dump(self.visualisation_data(), f)
+                    break
+
                 if i % 100 == 0:
                     with open(
                         f"results/{self.dataset_name}/stx_search/stx_search_{self.model_name}_{self.dataset_name}_{self.explaining_event_idx}_{self.exp_size}.pck",
