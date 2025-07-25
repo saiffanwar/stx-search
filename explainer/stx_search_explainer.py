@@ -7,7 +7,6 @@ import argparse
 import copy
 import os
 import pandas as pd
-import seaborn as sns
 import matplotlib.pyplot as plt
 
 from sa_explainer import SimulatedAnnealing
